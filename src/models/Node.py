@@ -22,5 +22,3 @@ class Node:
             return False
         self.current_connections += 1
         return True
-
-
