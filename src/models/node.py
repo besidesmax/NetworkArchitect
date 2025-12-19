@@ -18,7 +18,6 @@ class Node:
         self.position_y = y
         self.node_type = node_type
         self.current_connections = 0
-        self.max_connections = node_type.max_connections
 
     def add_connection(self) -> bool:
         """Add one bridge connection to this node (GR-06).
@@ -27,7 +26,7 @@ class Node:
             True if the connection was added successfully,
             False if the node has already reached its maximum capacity.
         """
-        if self.current_connections >= self.max_connections:
+        if self.current_connections >= self.node_type.max_connections:
             return False
         self.current_connections += 1
         return True
