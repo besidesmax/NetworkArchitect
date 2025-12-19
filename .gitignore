@@ -10,4 +10,4 @@ dist/
 build/
 *.log
 docs/*.docx
-src/test.py
+tests/test.py
