@@ -5,8 +5,7 @@ class Node:
     """Represents a network device (node) in the game."""
 
     def __init__(self, node_id: int, x: int, y: int, node_type: NodeType):
-        """
-                Initialize a node with position, type and connection capacity.
+        """Initialize a node with position, type and connection capacity.
 
         Args:
             node_id: Unique identifier of the node on the board.
