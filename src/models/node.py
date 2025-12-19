@@ -1,4 +1,4 @@
-from node_type import NodeType
+from models.node_type import NodeType
 
 
 class Node:
