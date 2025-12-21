@@ -2,7 +2,7 @@ import pytest
 
 from models.node import Node
 from models.node_type import NodeType
-
+from models.grid_point import GridPoint
 
 @pytest.mark.parametrize("node_type", NodeType)
 def test_add_connections(node_type: NodeType) -> None:
@@ -12,8 +12,8 @@ def test_add_connections(node_type: NodeType) -> None:
     - Success: current_connections increases by 1 when result=True
     - Limit: current_connections unchanged when result=False (max reached)
     """
-
-    node = Node(1, 1, 1, node_type=node_type)
+    grid_point1 = GridPoint(1, 1)
+    node = Node(grid_point1, node_type=node_type)
     start = node.current_connections
 
     for attempt in range(1, 8):
