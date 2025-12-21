@@ -1,5 +1,6 @@
 from models.node_type import NodeType
 from models.grid_point import GridPoint
+from models.validator import Validator
 
 
 class Node:
@@ -7,7 +8,7 @@ class Node:
 
     id_counter = 1
 
-    def __init__(self, grid_point: GridPoint, node_type: NodeType):
+    def __init__(self, grid_point: list[GridPoint], node_type: NodeType):
         """Initialize a node with position = GridPoint, type and connection capacity.
 
         Args:
@@ -17,14 +18,9 @@ class Node:
         # define ID
         self.node_id = Node.id_counter
         Node.id_counter += 1
-
         # test if GridPoint is already used
-        if grid_point.used:
-            raise ValueError("GridPoint", grid_point.grid_point_id, "is already used")
-
+        Validator.is_grid_point_used(grid_point)
         self.grid_point = grid_point
-        grid_point.used = True
-
         # defines rest of the attributes
         self.node_type = node_type
         self.current_connections = 0
