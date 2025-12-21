@@ -1,6 +1,7 @@
 from models.node_type import NodeType
 from models.grid_point import GridPoint
 
+
 class Node:
     """Represents a network device (node) in the game."""
 
@@ -10,15 +11,21 @@ class Node:
         """Initialize a node with position = GridPoint, type and connection capacity.
 
         Args:
-            node_id: Unique identifier of the node on the board.
             grid_point: X and Y coordinate of the node on the board grid.
             node_type: Type of node, defines its maximum connections.
         """
+        # define ID
         self.node_id = Node.id_counter
         Node.id_counter += 1
-        self.grid_point = grid_point
+
+        # test if GridPoint is already used
+        if grid_point.used:
+            raise ValueError("GridPoint is already used")
+
+        grid_point.used = True
         self.node_type = node_type
         self.current_connections = 0
+
 
     def add_connection(self) -> bool:
         """Add one bridge connection to this node (GR-06).
