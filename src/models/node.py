@@ -20,9 +20,11 @@ class Node:
 
         # test if GridPoint is already used
         if grid_point.used:
-            raise ValueError("GridPoint is already used")
+            raise ValueError("GridPoint", grid_point.grid_point_id, "is already used")
 
         grid_point.used = True
+
+        # defines rest of the attributes
         self.node_type = node_type
         self.current_connections = 0
 
