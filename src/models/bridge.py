@@ -19,8 +19,8 @@ class Bridge:
             bridge_type: Type of this bridge, defines bandwidth and cost.
         """
         # sets the bridge_id
-        self.bridge_id = Node.id_counter
-        Node.id_counter += 1
+        self.bridge_id = Bridge.id_counter
+        Bridge.id_counter += 1
 
         # test if GridPoint is already used
         for grid_point in grid_points:
