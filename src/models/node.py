@@ -4,7 +4,9 @@ from models.grid_point import GridPoint
 class Node:
     """Represents a network device (node) in the game."""
 
-    def __init__(self, node_id: int, grid_point: GridPoint, node_type: NodeType):
+    id_counter = 1
+
+    def __init__(self, grid_point: GridPoint, node_type: NodeType):
         """Initialize a node with position = GridPoint, type and connection capacity.
 
         Args:
@@ -12,7 +14,8 @@ class Node:
             grid_point: X and Y coordinate of the node on the board grid.
             node_type: Type of node, defines its maximum connections.
         """
-        self.node_id = node_id
+        self.node_id = Node.id_counter
+        Node.id_counter += 1
         self.grid_point = grid_point
         self.node_type = node_type
         self.current_connections = 0
