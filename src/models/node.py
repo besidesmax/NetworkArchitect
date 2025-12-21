@@ -22,7 +22,9 @@ class Node:
         if grid_point.used:
             raise ValueError("GridPoint", grid_point.grid_point_id, "is already used")
 
+        self.grid_point = grid_point
         grid_point.used = True
+
 
         # defines rest of the attributes
         self.node_type = node_type
