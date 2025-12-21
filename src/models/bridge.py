@@ -1,6 +1,7 @@
 from models.bridge_type import BridgeType
 from models.node import Node
 from models.grid_point import GridPoint
+from models.validator import Validator
 
 
 class Bridge:
@@ -21,13 +22,8 @@ class Bridge:
         # sets the bridge_id
         self.bridge_id = Bridge.id_counter
         Bridge.id_counter += 1
-
-        # test if GridPoint is already used
-        for grid_point in grid_points:
-            if grid_point.used:
-                raise ValueError("GridPoint", grid_point.grid_point_id, "is already used")
-            grid_point.used = True
+        # defines rest of the attributes
+        self.grid_points: list[GridPoint] = grid_points
         self.from_node = from_node
-        self.grid_points = grid_points
         self.to_node = to_node
         self.bridge_type = bridge_type
