@@ -25,11 +25,9 @@ class Node:
         self.grid_point = grid_point
         grid_point.used = True
 
-
         # defines rest of the attributes
         self.node_type = node_type
         self.current_connections = 0
-
 
     def add_connection(self) -> bool:
         """Add one bridge connection to this node (GR-06).
