@@ -28,6 +28,7 @@ class Network:
 
         if node.grid_point[0].used is True:
             raise ValueError(f" GridPoint {node.grid_point[0].grid_point_id} is already used")
+        node.grid_point[0].used = True
         self.nodes.append(node)
         return True
 
@@ -51,5 +52,10 @@ class Network:
         to_node.add_connection()
         # create bridge
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
+        # set all grid_point.used = True
+        for i in range(len(grid_points) - 1):
+            grid_point1 = grid_points[i]
+            grid_point1.used = True
+
         self.bridges.append(bridge)
         return bridge
