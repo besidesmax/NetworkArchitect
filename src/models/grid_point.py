@@ -1,6 +1,7 @@
 class GridPoint:
     """Represents a GridPoint on the board."""
 
+    all_instances: list['GridPoint'] = []
     id_counter = 1
 
     def __init__(self, x: int, y: int):
@@ -15,3 +16,9 @@ class GridPoint:
         self.position_x = x
         self.position_y = y
         self.used = False
+        GridPoint.all_instances.append(self)    # Auto-Registry of all GridPoints
+
+    @staticmethod
+    def reset_all_grid_point() -> None:                 # TODO implement a reset for the whole game
+        for grid_point in GridPoint.all_instances:
+            grid_point.used = False
