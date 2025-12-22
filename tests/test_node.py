@@ -1,8 +1,8 @@
 import pytest
-
 from models.node import Node
 from models.node_type import NodeType
 from models.grid_point import GridPoint
+
 
 @pytest.mark.parametrize("node_type", NodeType)
 def test_add_connections(node_type: NodeType) -> None:
