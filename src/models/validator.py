@@ -10,7 +10,6 @@ class Validator:
         for points in grid_points:
             if points.used:
                 raise ValueError("GridPoint", {points.grid_point_id}, "is already used")
-            points.used = True
 
     @staticmethod
     def is_first_grid_point_adjacent(from_node: Node, grid_points: list[GridPoint]) -> None:
