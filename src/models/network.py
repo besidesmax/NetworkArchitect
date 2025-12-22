@@ -18,14 +18,16 @@ class Network:
         self.redundancy_score = 0.0
 
     def add_node(self, node: Node) -> bool:
-        """Adds a single node to the network.
+        """dd a single node to the network if it is not already present.
 
         Args:
-            node (Node): The node object to add to the network
+            node (Node): The node object to add to the network.
+        Returns:
+            bool: True if the node was added, False if it was already in the network.
         """
-        # checks if node is already in the Network
+        # checks if node is already in the Network, and adds if not
         if node in self.nodes:
-            raise ValueError(f" Node {node.node_id} is already used in Network")
+            return False
         self.nodes.append(node)
         return True
 
@@ -50,11 +52,19 @@ class Network:
         # create bridge
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
         # set all grid_point.used = True
-        print(f"grid_points length ={len(grid_points)}")
         for i in range(len(grid_points)):
             grid_point1 = grid_points[i]
-            print(f" GridPoint {grid_point1.grid_point_id} = {grid_point1.used}")
             grid_point1.used = True
 
         self.bridges.append(bridge)
         return bridge
+
+    def rest_network(self) -> None:
+
+        self.nodes: list[Node] = []
+        self.bridges: list[Bridge] = []
+        self.is_solved = False
+        self.performance_score = 0.0
+        self.redundancy_score = 0.0
+
+
