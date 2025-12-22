@@ -6,7 +6,11 @@ class Validator:
     """this class validates all game rules"""
     @staticmethod
     def is_grid_point_used(grid_points: list[GridPoint]) -> None:
-        """Check if any GridPoint is already used and mark them used."""
+        """Ensure no GridPoint in the list is already used.
+
+        Raises:
+            ValueError: If any GridPoint is already marked as used.
+        """
         for points in grid_points:
             if points.used:
                 raise ValueError("GridPoint", {points.grid_point_id}, "is already used")
@@ -71,7 +75,11 @@ class Validator:
 
     @staticmethod
     def are_grid_points_adjacent(grid_points: list[GridPoint]) -> None:
-        """Check if all GridPoints are adjacent to each other."""
+        """Check that the first GridPoint is orthogonally adjacent to from_node.
+
+        Raises:
+            ValueError: If the first GridPoint is not adjacent or is diagonal.
+        """
         for i in range(len(grid_points) - 1):
             point1 = grid_points[i]
             point1_x = grid_points[i].position_x
