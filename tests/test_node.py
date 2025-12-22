@@ -13,7 +13,7 @@ def test_add_connections(node_type: NodeType) -> None:
     - Limit: current_connections unchanged when result=False (max reached)
     """
     grid_point1 = GridPoint(1, 1)
-    node = Node(grid_point1, node_type=node_type)
+    node = Node([grid_point1], node_type=node_type)
     start = node.current_connections
 
     for attempt in range(1, 8):
