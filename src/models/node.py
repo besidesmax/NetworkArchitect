@@ -23,6 +23,10 @@ class Node:
         # Node requires exactly 1 GridPoint position
         if len(grid_point) != 1:
             raise ValueError("Node requires exactly 1 GridPoint")
+        # checks if grid_point is already used
+        if grid_point[0].used is True:
+            raise ValueError(f" GridPoint {grid_point[0].grid_point_id} is already used")
+        grid_point[0].used = True
         self.grid_point = grid_point
         # determines properties
         self.node_type = node_type
