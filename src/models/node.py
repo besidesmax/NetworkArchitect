@@ -8,26 +8,32 @@ class Node:
     id_counter = 1
 
     def __init__(self, grid_point: list[GridPoint], node_type: NodeType):
-        """Initialize a node with position = GridPoint, type and connection capacity.
+        """Create network Node at grid position with type-specific connection limits.
 
         Args:
-            grid_point: X and Y coordinate of the node on the board grid.
-            node_type: Type of node, defines its maximum connections.
+            grid_point: List with exactly one GridPoint (X,Y position).
+            node_type: Defines max connections (SERVER=8, FIREWALL=2).
+
+        Raises:
+            ValueError: If grid_point does not contain exactly 1 GridPoint.
         """
-        # define ID
+        # Global unique ID for all nodes in session
         self.node_id = Node.id_counter
         Node.id_counter += 1
-        # defines rest of the attributes
+        # Node requires exactly 1 GridPoint position
+        if len(grid_point) != 1:
+            raise ValueError("Node requires exactly 1 GridPoint")
         self.grid_point = grid_point
+        # determines properties
         self.node_type = node_type
         self.current_connections = 0
 
     def add_connection(self) -> bool:
-        """Add one bridge connection to this node (GR-06).
+        """Add one connection to this node (GR-06).
 
         Returns:
-            True if the connection was added successfully,
-            False if the node has already reached its maximum capacity.
+            True if capacity allows and connection was added successfully,
+            False if the node has already reached its maximum capacity. (GR-06/10)
         """
         if self.current_connections >= self.node_type.max_connections:
             return False
