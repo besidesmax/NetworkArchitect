@@ -35,7 +35,7 @@ class Network:
         if len(grid_points) == 0:
             raise ValueError("Grid points list cannot be empty")
 
-        # tests if GridPoint is already used
+        # tests if any GridPoint is already used
         Validator.is_grid_point_used(grid_points)
         # test if the 1. grid_point is next to from_node
         Validator.is_first_grid_point_adjacent(from_node, grid_points)
@@ -50,8 +50,10 @@ class Network:
         # create bridge
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
         # set all grid_point.used = True
-        for i in range(len(grid_points) - 1):
+        print(f"grid_points length ={len(grid_points)}")
+        for i in range(len(grid_points)):
             grid_point1 = grid_points[i]
+            print(f" GridPoint {grid_point1.grid_point_id} = {grid_point1.used}")
             grid_point1.used = True
 
         self.bridges.append(bridge)
