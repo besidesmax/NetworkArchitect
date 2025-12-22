@@ -6,10 +6,10 @@ from models.validator import Validator
 
 
 class Network:
-    """ represents the Network of a Level, with includes alls Nodes and Bridges"""
+    """Represents the network of a level containing all nodes and bridges."""
 
     def __init__(self):
-        """Represents the network of a level. Starts empty - nodes and bridges added dynamically during gameplay."""
+        """Initialize an empty network for a level."""
 
         self.nodes: list[Node] = []
         self.bridges: list[Bridge] = []
@@ -18,10 +18,11 @@ class Network:
         self.redundancy_score = 0.0
 
     def add_node(self, node: Node) -> bool:
-        """dd a single node to the network if it is not already present.
+        """Add a node to the network if it is not already present.
 
         Args:
-            node (Node): The node object to add to the network.
+            node (Node): Node object to add to the network.
+
         Returns:
             bool: True if the node was added, False if it was already in the network.
         """
@@ -33,6 +34,20 @@ class Network:
 
     def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
                      bridge_type: BridgeType) -> Bridge:
+        """Place a bridge between two nodes after validating the path.
+
+        Args:
+            from_node (Node): Start node of the bridge.
+            grid_points (list[GridPoint]): GridPoints along the bridge path.
+            to_node (Node): End node of the bridge.
+            bridge_type (BridgeType): Type of the bridge.
+
+        Raises:
+            ValueError: If grid_points is empty or any validation rule is violated.
+
+        Returns:
+            Bridge: The created bridge instance.
+        """
         # tests grid_points isn't empty
         if len(grid_points) == 0:
             raise ValueError("Grid points list cannot be empty")
@@ -60,11 +75,9 @@ class Network:
         return bridge
 
     def rest_network(self) -> None:
-
+        """Reset network state to an empty level network."""
         self.nodes: list[Node] = []
         self.bridges: list[Bridge] = []
         self.is_solved = False
         self.performance_score = 0.0
         self.redundancy_score = 0.0
-
-
