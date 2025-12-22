@@ -5,18 +5,19 @@ class GridPoint:
     id_counter = 1
 
     def __init__(self, x: int, y: int):
-        """Initialize a GridPoint with position
+        """Initialize a GridPoint with its board position.
 
         Args:
-            x: X coordinate of the GridPoint on the board.
-            y: Y coordinate of the GridPoint on the board.
+            x (int): X coordinate of the GridPoint on the board.
+            y (int): Y coordinate of the GridPoint on the board.
         """
         self.grid_point_id = GridPoint.id_counter
         GridPoint.id_counter += 1
         self.position_x = x
         self.position_y = y
         self.used = False
-        GridPoint.all_instances.append(self)    # Auto-Registry of all GridPoints
+        # Register every created GridPoint instance globally
+        GridPoint.all_instances.append(self)
 
     @staticmethod
     def reset_all_grid_point() -> None:
@@ -26,7 +27,8 @@ class GridPoint:
 
 
 def create_board(width: int, height: int) -> list[GridPoint]:
-    """Creates a new GameBoard
+    """Create a rectangular board of GridPoints.
+
     Args:
         width (int): Number of columns (x-direction).
         height (int): Number of rows (y-direction).
