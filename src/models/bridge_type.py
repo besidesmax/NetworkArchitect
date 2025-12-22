@@ -12,7 +12,7 @@ class BridgeType(Enum):
     WIFI_5G = ("WIFI_5G", 600, 35)
     FIBER = ("FIBER", 2000, 120)
 
-    def __init__(self, display_name: str, bandwidth: int, cost: int):
+    def __init__(self, display_name: str, bandwidth: int, cost: int) -> None:
         """Initialize a bridge type with bandwidth and cost.
 
                 Args:
