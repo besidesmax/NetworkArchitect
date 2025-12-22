@@ -23,15 +23,13 @@ class Network:
         Args:
             node (Node): The node object to add to the network
         """
-
         if node in self.nodes:
-            return ValueError(f" Node {node.node_id} is already used in Network")
+            raise ValueError(f" Node {node.node_id} is already used in Network")
 
-        if node.grid_point is True:
-            return ValueError(f" GridPoint {node.grid_point[0].grid_point_id} is already used")
+        if node.grid_point[0].used is True:
+            raise ValueError(f" GridPoint {node.grid_point[0].grid_point_id} is already used")
         self.nodes.append(node)
-
-
+        return True
 
     def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
                      bridge_type: BridgeType) -> Bridge:
@@ -55,4 +53,3 @@ class Network:
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
         self.bridges.append(bridge)
         return bridge
-
