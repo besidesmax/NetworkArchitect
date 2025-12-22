@@ -23,12 +23,9 @@ class Network:
         Args:
             node (Node): The node object to add to the network
         """
+        # checks if node is already in the Network
         if node in self.nodes:
             raise ValueError(f" Node {node.node_id} is already used in Network")
-
-        if node.grid_point[0].used is True:
-            raise ValueError(f" GridPoint {node.grid_point[0].grid_point_id} is already used")
-        node.grid_point[0].used = True
         self.nodes.append(node)
         return True
 
