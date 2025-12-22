@@ -4,7 +4,7 @@ from models.grid_point import GridPoint
 
 class Node:
     """Represents a network device (node) in the game."""
-
+    all_instances: list['Node'] = []
     id_counter = 1
 
     def __init__(self, grid_point: list[GridPoint], node_type: NodeType):
@@ -43,3 +43,8 @@ class Node:
             return False
         self.current_connections += 1
         return True
+
+    @staticmethod
+    def reset_all_nodes():
+        for node in Node.all_instances:
+            node.current_connections = 0
