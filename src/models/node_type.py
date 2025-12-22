@@ -12,7 +12,7 @@ class NodeType(Enum):
     ROUTER = ("ROUTER", 4, 0)
     FIREWALL = ("FIREWALL", 2, 0)
 
-    def __init__(self, display_name: str, max_connections: int, min_connections: int):
+    def __init__(self, display_name: str, max_connections: int, min_connections: int) -> None:
         """Initialize a node type with connection limits.
 
                 Args:
