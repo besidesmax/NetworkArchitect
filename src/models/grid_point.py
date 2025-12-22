@@ -23,3 +23,19 @@ class GridPoint:
         # TODO solve Problem that with this function, also used Grid that used by Nodes are reset to use = False
         for grid_point in GridPoint.all_instances:
             grid_point.used = False
+
+
+def create_board(width: int, height: int) -> list[GridPoint]:
+    """Creates a new GameBoard
+    Args:
+        width (int): Number of columns (x-direction).
+        height (int): Number of rows (y-direction).
+
+    Returns:
+        list[GridPoint]: All GridPoints on the board.
+    """
+    board: list[GridPoint] = []
+    for x in range(width):
+        for y in range(height):
+            board.append(GridPoint(x, y))
+    return board
