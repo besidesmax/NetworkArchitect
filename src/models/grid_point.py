@@ -19,6 +19,7 @@ class GridPoint:
         GridPoint.all_instances.append(self)    # Auto-Registry of all GridPoints
 
     @staticmethod
-    def reset_all_grid_point() -> None:                 # TODO implement a reset for the whole game
+    def reset_all_grid_point() -> None:
+        # TODO solve Problem that with this function, also used Grid that used by Nodes are reset to use = False
         for grid_point in GridPoint.all_instances:
             grid_point.used = False
