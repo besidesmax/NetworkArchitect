@@ -35,8 +35,6 @@ class Level:
         # Pre-create the GameBoard of GridPoints for this level.
         self.game_board: list[GridPoint] = self.create_board()
 
-        # Network will later hold all nodes and bridges for this level.
-        self.network = Network()
 
     def create_board(self) -> list[GridPoint]:
         """Create a rectangular grid of GridPoints and attach it to the game board.
