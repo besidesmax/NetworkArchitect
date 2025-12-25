@@ -1,6 +1,9 @@
 from models.level import Level
 from models.player import Player
 from models.network import Network
+from models.node import Node
+from models.grid_point import GridPoint
+from models.bridge_type import BridgeType
 
 
 class GameSession:
@@ -25,3 +28,30 @@ class GameSession:
 
         # Network will later hold all nodes and bridges for this level.
         self.network = Network()
+
+    def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
+                     bridge_type: BridgeType) -> bool:
+        """
+            Place a new bridge as a player action and update the session budget.
+        Args:
+        from_node: Start node of the bridge.
+        grid_points: Grid points the bridge will occupy between the nodes.
+        to_node: End node of the bridge.
+        bridge_type: Type of the bridge to be placed.
+
+        Returns:
+            True if the bridge was successfully placed and the budget updated.
+
+        Raises:
+            ValueError: If the current budget is lower than the required bridge cost.
+        """
+
+        # Ensure that the player has enough budget for this bridge placement.
+        if self.current_budget < bridge_type.cost:
+            raise ValueError(f"Current budge ist to low; current = {self.current_budget}; cost = {bridge_type.cost}")
+        # Delegate the actual bridge creation and validation to the Network model.
+        self.network.add_bridge(from_node, grid_points, to_node, bridge_type)
+        # Deduct the cost of the placed bridge from the session's current budget.
+        self.current_budget = self.current_budget - bridge_type.cost
+
+        return True
