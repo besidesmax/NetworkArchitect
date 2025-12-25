@@ -16,19 +16,36 @@ def test_add_connections(node_type: NodeType) -> None:
     node = Node([grid_point1], node_type=node_type)
     start = node.current_connections
 
-    for attempt in range(1, 8):
-        result = node.add_connection()
+    for attempt in range(node.node_type.max_connections):
+        node.add_connection()
+        assert node.current_connections == start + (attempt + 1)
+    # one more attempt must raise a ValueError
+    with pytest.raises(ValueError):
+        node.add_connection()
 
-        if result:
-            assert (
-                    node.current_connections == start + attempt), \
-                f"Expected {start + attempt}, got {node.current_connections}"
-        else:
-            expected_max = start + (attempt - 1)
-            assert (
-                    node.current_connections == expected_max), \
-                f"Expected no increase at max ({expected_max}), got {node.current_connections}"
-            assert (
-                    node.current_connections <= node.node_type.max_connections), \
-                f"Max exceeded: {node.current_connections} > {node.node_type.max_connections}"
-            break
+
+@pytest.mark.parametrize("node_type", NodeType)
+def test_remove_connections(node_type: NodeType) -> None:
+    """
+#     Test Node.remove_connection() for all NodeTypes.
+#
+#     The test verifies two behaviors:
+#     - Normal case: current_connections decreases by 1 while it is > 0.
+#     - Lower bound: current_connections never drops below 0.
+#     """
+
+    grid_point1 = GridPoint(1, 1)
+    node = Node([grid_point1], node_type=node_type)
+
+    for attempt in range(node.node_type.max_connections):
+        node.add_connection()
+
+    start = node.current_connections
+
+    for attempt in range(node.current_connections):
+        node.remove_connection()
+        assert node.current_connections == start - (attempt + 1)
+
+    # one more attempt must raise a ValueError
+    with pytest.raises(ValueError):
+        node.remove_connection()
