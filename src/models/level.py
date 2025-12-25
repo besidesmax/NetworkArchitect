@@ -1,6 +1,5 @@
 from models.difficulty import Difficulty
 from models.grid_point import GridPoint
-from models.network import Network
 from models.node_config import NodeConfig
 
 
@@ -34,7 +33,6 @@ class Level:
 
         # Pre-create the GameBoard of GridPoints for this level.
         self.game_board: list[GridPoint] = self.create_board()
-
 
     def create_board(self) -> list[GridPoint]:
         """Create a rectangular grid of GridPoints and attach it to the game board.
