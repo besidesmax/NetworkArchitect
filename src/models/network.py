@@ -66,10 +66,16 @@ class Network:
         Validator.is_last_grid_point_adjacent(to_node, grid_points)
         # test if all grid_point are adjacent to each other
         Validator.are_grid_points_adjacent(grid_points)
+
+        # add from_node to network
+        self.add_node(from_node)
+        # add to_node to network
+        self.add_node(to_node)
         # raise current_connections of from_node by 1
         from_node.add_connection()
         # raise current_connections of to_node by 1
         to_node.add_connection()
+
         # create bridge
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
         # set all grid_point.used = True
@@ -113,4 +119,5 @@ class Network:
                 self.bridges.remove(bridge)
                 for grid_point in bridge.grid_points:
                     grid_point.used = False
+
         return True
