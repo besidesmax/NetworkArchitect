@@ -2,7 +2,7 @@ class GridPoint:
     """Represents a GridPoint on the board."""
 
     all_instances: list['GridPoint'] = []
-    id_counter = 1
+    id_counter = 0
 
     def __init__(self, x: int, y: int):
         """Initialize a GridPoint with its board position.
@@ -19,25 +19,10 @@ class GridPoint:
         # Register every created GridPoint instance globally
         GridPoint.all_instances.append(self)
 
-    @staticmethod
     def reset_all_grid_point() -> None:
         # TODO solve Problem that with this function, also used Grid that used by Nodes are reset to use = False
         for grid_point in GridPoint.all_instances:
             grid_point.used = False
 
 
-def create_board(width: int, height: int) -> list[GridPoint]:
-    """Create a rectangular board of GridPoints.
 
-    Args:
-        width (int): Number of columns (x-direction).
-        height (int): Number of rows (y-direction).
-
-    Returns:
-        list[GridPoint]: All GridPoints on the board.
-    """
-    board: list[GridPoint] = []
-    for x in range(width):
-        for y in range(height):
-            board.append(GridPoint(x, y))
-    return board
