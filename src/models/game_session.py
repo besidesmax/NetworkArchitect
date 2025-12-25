@@ -4,6 +4,8 @@ from models.network import Network
 from models.node import Node
 from models.grid_point import GridPoint
 from models.bridge_type import BridgeType
+from models.bridge import Bridge
+from collections import Counter
 
 
 class GameSession:
@@ -22,6 +24,7 @@ class GameSession:
         GameSession.id_counter += 1
         self.player = player
         self.level = level
+        self.is_solved = False
 
         # Start each session with the level's initial budget.
         self.current_budget = level.start_budget
@@ -34,10 +37,10 @@ class GameSession:
         """
             Place a new bridge as a player action and update the session budget.
         Args:
-        from_node: Start node of the bridge.
-        grid_points: Grid points the bridge will occupy between the nodes.
-        to_node: End node of the bridge.
-        bridge_type: Type of the bridge to be placed.
+            from_node: Start node of the bridge.
+            grid_points: Grid points the bridge will occupy between the nodes.
+            to_node: End node of the bridge.
+            bridge_type: Type of the bridge to be placed.
 
         Returns:
             True if the bridge was successfully placed and the budget updated.
@@ -55,3 +58,29 @@ class GameSession:
         self.current_budget = self.current_budget - bridge_type.cost
 
         return True
+
+    def remove_bridge(self, bridge: Bridge) -> bool:
+        """
+            Remove an existing bridge as a player action and update the session budget.
+        Args:
+            bridge: The bridge instance to remove from the network.
+
+        Returns:
+            bool: True if the bridge was successfully removed and the budget.
+        """
+
+        # Delegate the actual bridge deletion to the Network model.
+        self.network.delete_bridge(bridge)
+
+        # Refund the bridge cost to the session's current budget.
+        self.current_budget = self.current_budget + bridge.bridge_type.cost
+
+        return True
+
+    def is_it_solved(self) -> None:  # TODO add is_it_solved Methode
+
+        nodes_level = self.level.node_config.nodes
+        nodes_network = self.network.nodes
+        if not Counter(nodes_level) == Counter(nodes_network):
+            raise ValueError("Not all nodes connected")
+        self.is_solved = True
