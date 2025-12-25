@@ -5,7 +5,7 @@ from models.grid_point import GridPoint
 class Node:
     """Represents a network device (node) in the game."""
     all_instances: list['Node'] = []
-    id_counter = 1
+    id_counter = 0
 
     def __init__(self, grid_point: list[GridPoint], node_type: NodeType) -> None:
         """Create network Node at grid position with type-specific connection limits.
