@@ -95,29 +95,34 @@ class Network:
         self.performance_score = 0.0
         self.redundancy_score = 0.0
 
-    def remove_bridge(self, bridge_id: int) -> bool:
-        """Remove a bridge with the given ID from the network.
+    def delete_bridge(self, bridge: Bridge) -> bool:
+        """Remove a bridge from the network and update all related state.
 
-        :param bridge_id: Unique identifier of the bridge to remove.
-        :return: True if the bridge was successfully removed.
-        :raises ValueError: If no bridge with the given ID exists in the network.
+        Args:
+            bridge: The bridge instance to remove from the network.
+        Returns:
+            bool: True if the bridge was successfully removed.
+        Raises:
+            ValueError: If the given bridge is not part of this network.
         """
-
-        # Collect all existing bridge IDs in the network to validate the input.
-        list_bridges_id = []
-        for bridge in self.bridges:
-            list_bridges_id.append(bridge.bridge_id)
-
-        # If the requested ID is not known, fail fast with a clear error.
-        if bridge_id not in list_bridges_id:
+        # Ensure that the bridge actually belongs to this network.
+        if bridge not in self.bridges:
             raise ValueError(f"Bridge ID is not in the network")
+        # Remove the bridge from the list of active bridges.
+        self.bridges.remove(bridge)
 
-        # Iterate over all bridges and remove the one with the matching ID
-        # Also reset the 'used' flag on all grid points occupied by this bridge.
-        for bridge in self.bridges:
-            if bridge.bridge_id == bridge_id:
-                self.bridges.remove(bridge)
-                for grid_point in bridge.grid_points:
-                    grid_point.used = False
+        # Mark all grid points previously used by this bridge as free again.
+        for grid_point in bridge.grid_points:
+            grid_point.used = False
+
+        # Decrease connection counters on both endpoint nodes.
+        bridge.from_node.current_connections -= 1
+        bridge.to_node.current_connections -= 1
+
+        # If the start node or to node is no longer connected to any bridge, remove it.
+        if bridge.from_node.current_connections == 0:
+            self.nodes.remove(bridge.from_node)
+        if bridge.to_node.current_connections == 0:
+            self.nodes.remove(bridge.to_node)
 
         return True
