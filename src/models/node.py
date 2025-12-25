@@ -35,12 +35,34 @@ class Node:
     def add_connection(self) -> bool:
         """Add one connection to this node respecting capacity limits.
 
-        Returns:
-            bool: True if the connection was added, False if capacity is already reached.
+         Returns:
+             bool: True if the connection was successfully added.
+
+         Raises:
+             ValueError: If the maximum number of connections for this node is already reached.
         """
+        # Ensure that the node does not exceed its allowed connection capacity.
         if self.current_connections >= self.node_type.max_connections:
-            return False
+            raise ValueError(f"Maximum number of connections already reached")
+        # Increment the number of active connections for this node.
         self.current_connections += 1
+        return True
+
+    def remove_connection(self) -> bool:
+        """Decrease the number of active connections for this node by one.
+
+         Returns:
+             bool: True if the connection was successfully removed.
+
+         Raises:
+             ValueError:  If there are no active connections to remove.
+        """
+        # Prevent the connection count from dropping below zero.
+        if self.current_connections == 0:
+            raise ValueError(f"CurrentConnections is already 0")
+
+        # Decrement the number of active connections for this node.
+        self.current_connections -= 1
         return True
 
     @staticmethod
