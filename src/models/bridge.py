@@ -6,7 +6,7 @@ from models.grid_point import GridPoint
 class Bridge:
     """Represents a network connection (bridge) between two nodes."""
 
-    id_counter = 1
+    id_counter = 0
 
     def __init__(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
                  bridge_type: BridgeType) -> None:
