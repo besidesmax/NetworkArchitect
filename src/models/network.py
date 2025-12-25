@@ -52,6 +52,13 @@ class Network:
         if len(grid_points) == 0:
             raise ValueError("Grid points list cannot be empty")
 
+        # check that from_node and to_node are Node instances
+        if not isinstance(from_node, Node):
+            raise ValueError("from_node isn't Class Node")
+        if not isinstance(to_node, Node):
+            raise ValueError("to_node isn't Class Node")
+
+
         # tests if any GridPoint is already used
         Validator.is_grid_point_used(grid_points)
         # test if the 1. grid_point is next to from_node
