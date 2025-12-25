@@ -4,7 +4,7 @@ from models.node import Node
 class NodeConfig:
     """Stores all nodes of a single level."""
 
-    id_counter = 1
+    id_counter = 0
 
     def __init__(self) -> None:
         self.node_config_id = NodeConfig.id_counter
