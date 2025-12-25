@@ -33,7 +33,7 @@ def test_place_bridge() -> None:
     with pytest.raises(ValueError):
         network1.place_bridge(node1, [], node2, BridgeType.FIBER)
 
-    network1.rest_network()
+    network1.reset_network()
     board = create_board(3, 3)
     node1 = Node([board[0]], NodeType.CLIENT)
     node2 = Node([board[5]], NodeType.CLIENT)
@@ -45,7 +45,7 @@ def test_place_bridge() -> None:
         network1.place_bridge(node2, [board[4]], node3, BridgeType.FIBER)
 
     # First GridPoint not adjacent to from_node must raise ValueError
-    network1.rest_network()
+    network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
@@ -53,7 +53,7 @@ def test_place_bridge() -> None:
         network1.place_bridge(node2, [board[3]], node3, BridgeType.FIBER)
 
     # Last GridPoint not adjacent to to_node must raise ValueError
-    network1.rest_network()
+    network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
@@ -61,7 +61,7 @@ def test_place_bridge() -> None:
         network1.place_bridge(node2, [board[3]], node3, BridgeType.FIBER)
 
     # Non-adjacent GridPoints in the path must raise ValueError
-    network1.rest_network()
+    network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
@@ -69,7 +69,7 @@ def test_place_bridge() -> None:
         network1.place_bridge(node2, [board[2], board[1], board[0], board[6]], node3, BridgeType.FIBER)
 
     # Adding a bridge must increase current_connections on both nodes
-    network1.rest_network()
+    network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
