@@ -1,7 +1,7 @@
-from models.node import Node
-from models.grid_point import GridPoint
-from models.bridge_type import BridgeType
 from models.bridge import Bridge
+from models.bridge_type import BridgeType
+from models.grid_point import GridPoint
+from models.node import Node
 from models.validator import Validator
 
 
@@ -58,7 +58,6 @@ class Network:
         if not isinstance(to_node, Node):
             raise ValueError("to_node isn't Class Node")
 
-
         # tests if any GridPoint is already used
         Validator.is_grid_point_used(grid_points)
         # test if the 1. grid_point is next to from_node
@@ -81,10 +80,36 @@ class Network:
         self.bridges.append(bridge)
         return bridge
 
-    def rest_network(self) -> None:
+    def reset_network(self) -> None:
         """Reset network state to an empty level network."""
         self.nodes: list[Node] = []
         self.bridges: list[Bridge] = []
         self.is_solved = False
         self.performance_score = 0.0
         self.redundancy_score = 0.0
+
+    def remove_bridge(self, bridge_id: int) -> bool:
+        """Remove a bridge with the given ID from the network.
+
+        :param bridge_id: Unique identifier of the bridge to remove.
+        :return: True if the bridge was successfully removed.
+        :raises ValueError: If no bridge with the given ID exists in the network.
+        """
+
+        # Collect all existing bridge IDs in the network to validate the input.
+        list_bridges_id = []
+        for bridge in self.bridges:
+            list_bridges_id.append(bridge.bridge_id)
+
+        # If the requested ID is not known, fail fast with a clear error.
+        if bridge_id not in list_bridges_id:
+            raise ValueError(f"Bridge ID is not in the network")
+
+        # Iterate over all bridges and remove the one with the matching ID
+        # Also reset the 'used' flag on all grid points occupied by this bridge.
+        for bridge in self.bridges:
+            if bridge.bridge_id == bridge_id:
+                self.bridges.remove(bridge)
+                for grid_point in bridge.grid_points:
+                    grid_point.used = False
+        return True
