@@ -32,8 +32,8 @@ class Network:
         self.nodes.append(node)
         return True
 
-    def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
-                     bridge_type: BridgeType) -> Bridge:
+    def add_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
+                   bridge_type: BridgeType) -> Bridge:
         """Place a bridge between two nodes after validating the path.
 
         Args:
@@ -78,6 +78,7 @@ class Network:
             grid_point1.used = True
 
         self.bridges.append(bridge)
+
         return bridge
 
     def reset_network(self) -> None:
