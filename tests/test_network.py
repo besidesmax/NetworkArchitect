@@ -1,10 +1,22 @@
 import pytest
-
 from models.bridge_type import BridgeType
-from models.grid_point import create_board
+from models.grid_point import GridPoint
 from models.network import Network
 from models.node import Node
 from models.node_type import NodeType
+from models.bridge import Bridge
+
+
+def create_board(x: int, y: int) -> list:
+    height = x
+    width = y
+
+    board: list[GridPoint] = []
+    for x in range(width):
+        for y in range(height):
+            board.append(GridPoint(x, y))
+
+    return board
 
 
 def test_add_node() -> None:
@@ -85,3 +97,52 @@ def test_place_bridge() -> None:
     node3_1 = node3.current_connections
     assert node2_1 == 1
     assert node3_1 == 1
+
+
+def test_delete_bridge() -> None:
+    network1 = Network()
+    board = create_board(3, 3)
+    node1 = Node([board[0]], NodeType.CLIENT)
+    node2 = Node([board[5]], NodeType.CLIENT)
+    bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
+    bridge2 = Bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
+
+    # deleting a bridge that isn't in the network have to raise a ValueError
+    with pytest.raises(ValueError):
+        network1.delete_bridge(bridge2)
+
+    # check if deleting a bridge, removes it form the network
+    start_bridges = list(network1.bridges)
+    network1.delete_bridge(bridge1)
+    assert start_bridges != network1.bridges
+
+    # check if deleting a bridge, change all bridges.grid_point.used to false
+    bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
+    start_used = {}
+    for grid_point in bridge1.grid_points:
+        start_used[grid_point] = grid_point.used
+    network1.delete_bridge(bridge1)
+    finished_used = {}
+    for grid_point in bridge1.grid_points:
+        finished_used[grid_point] = grid_point.used
+
+    assert start_used != finished_used
+
+    # check if current_connection of from_node and to_node is decreased by 1
+    bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
+    from_node_connection = bridge1.from_node.current_connections
+    to_node_connection = bridge1.to_node.current_connections
+    network1.delete_bridge(bridge1)
+    assert from_node_connection == (bridge1.from_node.current_connections + 1)
+    assert to_node_connection == (bridge1.to_node.current_connections + 1)
+
+    # Verify that nodes are removed once their current_connections reach zero
+    bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
+    from_node = bridge1.from_node
+    to_node = bridge1.to_node
+    start_nodes = list(network1.nodes)
+    network1.delete_bridge(bridge1)
+    assert from_node in start_nodes
+    assert to_node in start_nodes
+    assert from_node not in network1.nodes
+    assert to_node not in network1.nodes
