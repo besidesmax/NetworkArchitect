@@ -5,8 +5,6 @@ from models.node import Node
 from models.grid_point import GridPoint
 from models.bridge_type import BridgeType
 from models.bridge import Bridge
-from collections import Counter
-from models.node_type import NodeType
 
 
 class GameSession:
@@ -130,4 +128,4 @@ class GameSession:
             raise ValueError("not all Nodes connected with server")
 
         self.network.is_solved = True
-        return True
+        return
