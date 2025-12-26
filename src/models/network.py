@@ -117,8 +117,22 @@ class Network:
             grid_point.used = False
 
         # Decrease connection counters on both endpoint nodes.
-        bridge.from_node.current_connections -= 1
-        bridge.to_node.current_connections -= 1
+        from_node = bridge.from_node
+        from_node_id = from_node.node_id
+
+        to_node = bridge.to_node
+        to_node_id = to_node.node_id
+
+        for node in self.nodes:
+            if node.node_id == from_node.node_id:
+                node.current_connections -= 1
+
+        for node in self.nodes:
+            if node.node_id == to_node.node_id:
+                node.current_connections -= 1
+
+        # print(f" from_node.current_connections after = {self.nodes[from_node_id-1].current_connections}")
+        # print(f" to_node.current_connections after = {self.nodes[to_node_id-1].current_connections}")
 
         # If the start node or to node is no longer connected to any bridge, remove it.
         if bridge.from_node.current_connections == 0:
