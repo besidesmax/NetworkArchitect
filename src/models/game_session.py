@@ -92,11 +92,13 @@ class GameSession:
         nodes_level = self.level.node_config.nodes
         nodes_network = self.network.nodes
         if set(nodes_level) != set(nodes_network):
+            print("check1")
             return False
 
         # Check 2: GR-09 Server minimum 2 connections
         server = self.network.get_server()
         if server.current_connections < 2:
+            print("check2")
             return False
 
         # Check 3: GR-05 BFS reachability from server
@@ -131,7 +133,43 @@ class GameSession:
 
         # Check 4: GR-05 All nodes server-reachable?
         if set(nodes_network) != set(connected_with_server):
+            print("check3")
             return False
 
         self.network.is_solved = True
         return True
+
+    def calculate_redundancy_score(self):
+        # check if network is solved
+        if self.is_it_solved() is False:
+            raise ValueError("Network isn't solved")
+
+        # Backup for bridges
+        backup_bridges = list(self.network.bridges)
+
+        # Backup for nodes
+        backup_nodes = list(self.network.nodes)
+
+        # Backup for grid_point.used
+        backup_grid_point = {}
+        for grid_point in self.level.game_board:
+            backup_grid_point[grid_point] = grid_point.used
+
+        # Backup for nodes.current_connection
+        backup_current_connection = {}
+        for node in self.level.node_config.nodes:
+            backup_current_connection[node] = node.current_connections
+
+        # delete one bridge and test if network is still solved
+        bridges = list(self.network.bridges)
+        counter = 0
+        for i in range(0, len(bridges)):
+            bridge1 = bridges[i]
+            print(f" test bridge with ID = {bridge1.bridge_id}")
+            self.remove_bridge(bridges[i])
+            if self.is_it_solved() is False:
+                self.place_bridge(bridge1.from_node, bridge1.grid_points, bridge1.to_node, bridge1.bridge_type)
+            else:
+                counter += 1
+                self.place_bridge(bridge1.from_node, bridge1.grid_points, bridge1.to_node, bridge1.bridge_type)
+        print(counter)
