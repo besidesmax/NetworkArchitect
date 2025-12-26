@@ -4,9 +4,9 @@ from enum import Enum
 class Difficulty(Enum):
     """Difficulty level of a puzzle including its default board size."""
 
-    LIGHT = ("LIGHT", 3, 3)
-    MEDIUM = ("MEDIUM", 6, 6)
-    HARD = ("HARD", 9, 9)
+    LIGHT = ("LIGHT", 5, 9)
+    MEDIUM = ("MEDIUM", 7, 9)
+    HARD = ("HARD", 9, 11)
 
     def __init__(self, display_name: str, width: int, height: int) -> None:
         """Create a difficulty with an associated default board size.
