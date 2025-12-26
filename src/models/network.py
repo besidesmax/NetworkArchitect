@@ -2,6 +2,7 @@ from models.bridge import Bridge
 from models.bridge_type import BridgeType
 from models.grid_point import GridPoint
 from models.node import Node
+from models.node_type import NodeType
 from models.validator import Validator
 
 
@@ -126,3 +127,16 @@ class Network:
             self.nodes.remove(bridge.to_node)
 
         return True
+
+    def get_server(self):
+        """Retrieves the single Server node from the network.
+        Returns:
+            Node: The Server node instance.
+        Raises:
+            ValueError: If no Server node found in network.nodes.
+        """
+
+        for node in self.nodes:
+            if node.node_type == NodeType.SERVER:
+                return node  # Found the unique Server (GR-08)
+        raise ValueError("No Server in Network included")
