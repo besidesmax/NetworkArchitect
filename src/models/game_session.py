@@ -49,49 +49,55 @@ class GameSession:
 
         # Ensure that the player has enough budget for this bridge placement.
         if self.current_budget < bridge_type.cost:
-            raise ValueError(f"Current budge ist to low; current = {self.current_budget}; cost = {bridge_type.cost}")
-        # Delegate the actual bridge creation and validation to the Network model.
-        self.network.add_bridge(from_node, grid_points, to_node, bridge_type)
-        # Deduct the cost of the placed bridge from the session's current budget.
-        self.current_budget = self.current_budget - bridge_type.cost
+            return False
 
+        try:
+            # Delegate the actual bridge creation and validation to the Network model.
+            self.network.add_bridge(from_node, grid_points, to_node, bridge_type)
+
+            # Deduct the cost of the placed bridge from the session's current budget.
+            self.current_budget = self.current_budget - bridge_type.cost
+        except ValueError:
+            return False
         return True
 
     def remove_bridge(self, bridge: Bridge) -> bool:
-        """
-            Remove an existing bridge as a player action and update the session budget.
+        """GR-04+GR-15: Removes bridge and refunds budget if exists in network.
+
         Args:
-            bridge: The bridge instance to remove from the network.
+            bridge: Bridge instance to remove
 
         Returns:
-            bool: True if the bridge was successfully removed and the budget.
+            True if bridge removed and budget refunded, False otherwise.
         """
 
         # Delegate the actual bridge deletion to the Network model.
-        self.network.delete_bridge(bridge)
+        try:
+            self.network.delete_bridge(bridge)
+        except ValueError:
+            return False
 
         # Refund the bridge cost to the session's current budget.
-        self.current_budget = self.current_budget + bridge.bridge_type.cost
+        self.current_budget += bridge.bridge_type.cost
 
         return True
 
-    def is_it_solved(self) -> None:
-        """GR-05+GR-09: Complete server-reachable network?
-        Returns:
-        True if all level nodes exist, server has ≥2 connections,
-        and all nodes are server-reachable.
+    def is_it_solved(self) -> bool:
+        """GR-05+GR-09: Validates complete server-reachable network.
+       Returns:
+           True if GR-05 (all nodes reachable) AND GR-09 (server ≥2 conn)
         """
 
         # Check 1: GR-05 All level nodes present in network
         nodes_level = self.level.node_config.nodes
         nodes_network = self.network.nodes
         if set(nodes_level) != set(nodes_network):
-            raise ValueError("Not all nodes connected to an other node")
+            return False
 
         # Check 2: GR-09 Server minimum 2 connections
         server = self.network.get_server()
-        if not server.current_connections >= 2:
-            raise ValueError(f"Server has only {server.current_connections}; need 2 or more")
+        if server.current_connections < 2:
+            return False
 
         # Check 3: GR-05 BFS reachability from server
         connected_with_server = [server]
@@ -125,7 +131,7 @@ class GameSession:
 
         # Check 4: GR-05 All nodes server-reachable?
         if set(nodes_network) != set(connected_with_server):
-            raise ValueError("not all Nodes connected with server")
+            return False
 
         self.network.is_solved = True
-        return
+        return True
