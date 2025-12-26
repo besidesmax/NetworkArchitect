@@ -24,7 +24,6 @@ class GameSession:
         GameSession.id_counter += 1
         self.player = player
         self.level = level
-        self.is_solved = False
 
         # Start each session with the level's initial budget.
         self.current_budget = level.start_budget
@@ -77,10 +76,10 @@ class GameSession:
 
         return True
 
-    def is_it_solved(self) -> None:  # TODO add is_it_solved Methode
+    def is_it_solved(self) -> None:
 
         nodes_level = self.level.node_config.nodes
         nodes_network = self.network.nodes
         if not Counter(nodes_level) == Counter(nodes_network):
             raise ValueError("Not all nodes connected")
-        self.is_solved = True
+        self.network.is_solved = True
