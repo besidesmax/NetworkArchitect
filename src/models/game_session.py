@@ -6,6 +6,7 @@ from models.grid_point import GridPoint
 from models.bridge_type import BridgeType
 from models.bridge import Bridge
 from collections import Counter
+from models.node_type import NodeType
 
 
 class GameSession:
@@ -77,9 +78,56 @@ class GameSession:
         return True
 
     def is_it_solved(self) -> None:
+        """GR-05+GR-09: Complete server-reachable network?
+        Returns:
+        True if all level nodes exist, server has ≥2 connections,
+        and all nodes are server-reachable.
+        """
 
+        # Check 1: GR-05 All level nodes present in network
         nodes_level = self.level.node_config.nodes
         nodes_network = self.network.nodes
-        if not Counter(nodes_level) == Counter(nodes_network):
-            raise ValueError("Not all nodes connected")
+        if set(nodes_level) != set(nodes_network):
+            raise ValueError("Not all nodes connected to an other node")
+
+        # Check 2: GR-09 Server minimum 2 connections
+        server = self.network.get_server()
+        if not server.current_connections >= 2:
+            raise ValueError(f"Server has only {server.current_connections}; need 2 or more")
+
+        # Check 3: GR-05 BFS reachability from server
+        connected_with_server = [server]
+
+        def add_nodes_connected_to_server() -> bool:
+            """BFS iteration: Expands visited set with directly connected nodes.
+
+            Returns:
+                True if new nodes were added (continue BFS)
+            """
+            nodes_added = False
+
+            # first direction: from_node → to_node
+            for bridge in self.network.bridges:
+                if (bridge.from_node in connected_with_server and
+                        bridge.to_node not in connected_with_server):
+                    connected_with_server.append(bridge.to_node)
+                    nodes_added = True
+
+            # second direction: to_node → from_node
+            for bridge in self.network.bridges:
+                if (bridge.to_node in connected_with_server and
+                        bridge.from_node not in connected_with_server):
+                    connected_with_server.append(bridge.from_node)
+                    nodes_added = True
+
+            return nodes_added
+
+        while add_nodes_connected_to_server():
+            pass
+
+        # Check 4: GR-05 All nodes server-reachable?
+        if set(nodes_network) != set(connected_with_server):
+            raise ValueError("not all Nodes connected with server")
+
         self.network.is_solved = True
+        return True
