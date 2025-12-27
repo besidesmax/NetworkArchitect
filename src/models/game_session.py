@@ -1,10 +1,12 @@
+from itertools import chain, combinations
+
+from models.bridge import Bridge
+from models.bridge_type import BridgeType
+from models.grid_point import GridPoint
 from models.level import Level
-from models.player import Player
 from models.network import Network
 from models.node import Node
-from models.grid_point import GridPoint
-from models.bridge_type import BridgeType
-from models.bridge import Bridge
+from models.player import Player
 
 
 class GameSession:
@@ -92,13 +94,11 @@ class GameSession:
         nodes_level = self.level.node_config.nodes
         nodes_network = self.network.nodes
         if set(nodes_level) != set(nodes_network):
-            print("check1")
             return False
 
         # Check 2: GR-09 Server minimum 2 connections
         server = self.network.get_server()
         if server.current_connections < 2:
-            print("check2")
             return False
 
         # Check 3: GR-05 BFS reachability from server
@@ -133,43 +133,46 @@ class GameSession:
 
         # Check 4: GR-05 All nodes server-reachable?
         if set(nodes_network) != set(connected_with_server):
-            print("check3")
             return False
 
         self.network.is_solved = True
         return True
 
     def calculate_redundancy_score(self):
-        # check if network is solved
+        """Calculate network redundancy score by testing all bridge subset removals.
+            Tests how many bridge combinations can be removed while network remains solved.
+            High score = high redundancy = better network quality (GR-14).
+        Raises:
+            ValueError: If network is not solved initially
+        Returns:
+            int: Number of redundant bridge subsets (0-2^n-1)
+        """
+        # Precondition: Network must be solved
         if self.is_it_solved() is False:
-            raise ValueError("Network isn't solved")
+            raise ValueError("Network must be solved before redundancy calculation")
 
-        # Backup for bridges
-        backup_bridges = list(self.network.bridges)
+        # Generate all non-empty subsets (Power Set - empty set)
+        def all_subsets(bridges):
+            return chain(*[combinations(bridges, r) for r in range(1, len(bridges) + 1)])
 
-        # Backup for nodes
-        backup_nodes = list(self.network.nodes)
+        # Create stable copy of current bridges (iteration safety)
+        all_bridges = list(self.network.bridges)
+        redundancy_score = 0
 
-        # Backup for grid_point.used
-        backup_grid_point = {}
-        for grid_point in self.level.game_board:
-            backup_grid_point[grid_point] = grid_point.used
+        # Test each possible bridge subset removal
+        for subset in all_subsets(all_bridges):
+            # Phase 1: Remove all bridges in current subset
+            for bridge in subset:
+                self.remove_bridge(bridge)
 
-        # Backup for nodes.current_connection
-        backup_current_connection = {}
-        for node in self.level.node_config.nodes:
-            backup_current_connection[node] = node.current_connections
+            # Phase 2: Test if network remains solved without this subset
+            if self.is_it_solved() is True:
+                redundancy_score += 1  # Subset is redundant!
 
-        # delete one bridge and test if network is still solved
-        bridges = list(self.network.bridges)
-        counter = 0
-        for i in range(0, len(bridges)):
-            bridge1 = bridges[i]
-            print(f" test bridge with ID = {bridge1.bridge_id}")
-            self.remove_bridge(bridges[i])
-            if self.is_it_solved() is False:
-                self.place_bridge(bridge1.from_node, bridge1.grid_points, bridge1.to_node, bridge1.bridge_type)
-            else:
-                counter += 1
-                self.place_bridge(bridge1.from_node, bridge1.grid_points, bridge1.to_node, bridge1.bridge_type)
-        print(counter)
+            # Phase 3: Restore exact original state
+            for bridge in subset:
+                self.place_bridge(bridge.from_node, bridge.grid_points, bridge.to_node, bridge.bridge_type)
+
+        # Store result for MVVM data binding and return
+        self.network.redundancy_score = redundancy_score
+        return redundancy_score
