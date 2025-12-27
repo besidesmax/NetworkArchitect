@@ -48,4 +48,7 @@ class Level:
             for y in range(height):
                 board.append(GridPoint(x, y))
 
+        # set GridPoint.id_counter to 0
+        GridPoint.id_counter = 0
+
         return board
