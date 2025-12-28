@@ -176,3 +176,44 @@ class GameSession:
         # Store result for MVVM data binding and return
         self.network.redundancy_score = redundancy_score
         return redundancy_score
+
+    def create_copy(self):
+        test_player = Player("test_Player")
+        test_level = Level(self.level.difficulty, self.level.target_score, self.level.start_budget)
+        test_session = GameSession(test_player, test_level)
+
+        for game_node in self.network.nodes:
+            for test_grid_point in test_level.game_board:
+                if game_node.grid_point[0].grid_point_id == test_grid_point.grid_point_id:
+                    right_grid_point = test_grid_point
+                    test_session.network.add_node(Node([right_grid_point], game_node.node_type))
+
+        for game_bridge in self.network.bridges:
+            game_from_node = game_bridge.from_node
+            game_grid_points: list[GridPoint] = list(game_bridge.grid_points)
+            game_to_node = game_bridge.to_node
+            # bridge_type doesn't need a for-loop
+            right_bridge_type = game_bridge.bridge_type
+            right_from_node = None
+            right_grid_points = None
+            right_to_node = None
+
+            # gets the node in the test_frame that equals the from_node
+            for test_from_node in test_session.network.nodes:
+                if test_from_node.grid_point[0].grid_point_id == game_from_node.grid_point[0].grid_point_id:
+                    right_from_node = test_from_node
+
+            # gets the grid_points: list in the test_frame that equals bridge.grid_points
+            right_grid_points = []
+            for game_grid_point in game_grid_points:
+                for test_grid_point in test_level.game_board:
+                    if game_grid_point.grid_point_id == test_grid_point.grid_point_id:
+                        right_grid_points.append(test_grid_point)
+
+            # gets the node in the test_frame that equals the to_node
+            for test_to_node in test_session.network.nodes:
+                if test_to_node.grid_point[0].grid_point_id == game_to_node.grid_point[0].grid_point_id:
+                    right_to_node = test_to_node
+
+            # adds bridge to test_framework
+            test_session.place_bridge(right_from_node, right_grid_points, right_to_node, right_bridge_type)
