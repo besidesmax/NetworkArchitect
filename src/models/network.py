@@ -8,6 +8,7 @@ from models.validator import Validator
 
 class Network:
     """Represents the network of a level containing all nodes and bridges."""
+    id_counter = 0
 
     def __init__(self):
         """Initialize an empty network for a level."""
@@ -17,6 +18,8 @@ class Network:
         self.is_solved = False
         self.performance_score = 0.0
         self.redundancy_score = 0.0
+        self.network_id = Network.id_counter
+        Network.id_counter += 1
 
     def add_node(self, node: Node) -> bool:
         """Add a node to the network if it is not already present.
@@ -96,31 +99,38 @@ class Network:
         self.performance_score = 0.0
         self.redundancy_score = 0.0
 
-    def delete_bridge(self, bridge: Bridge) -> bool:
+    def delete_bridge(self, remove_bridge: Bridge) -> bool:
         """Remove a bridge from the network and update all related state.
 
         Args:
-            bridge: The bridge instance to remove from the network.
+            remove_bridge: The bridge instance to remove from the network.
         Returns:
             bool: True if the bridge was successfully removed.
         Raises:
             ValueError: If the given bridge is not part of this network.
         """
+        remove_bridge = remove_bridge
         # Ensure that the bridge actually belongs to this network.
-        if bridge not in self.bridges:
+        bridges_ids = []
+        for bridge in self.bridges:
+            bridges_ids.append(bridge.bridge_id)
+
+        if remove_bridge.bridge_id not in bridges_ids:
             raise ValueError(f"Bridge ID is not in the network")
         # Remove the bridge from the list of active bridges.
-        self.bridges.remove(bridge)
+        for bridge in self.bridges:
+            if bridge.bridge_id == remove_bridge.bridge_id:
+                self.bridges.remove(bridge)
 
         # Mark all grid points previously used by this bridge as free again.
-        for grid_point in bridge.grid_points:
+        for grid_point in remove_bridge.grid_points:
             grid_point.used = False
 
         # Decrease connection counters on both endpoint nodes.
-        from_node = bridge.from_node
+        from_node = remove_bridge.from_node
         from_node_id = from_node.node_id
 
-        to_node = bridge.to_node
+        to_node = remove_bridge.to_node
         to_node_id = to_node.node_id
 
         for node in self.nodes:
@@ -131,14 +141,11 @@ class Network:
             if node.node_id == to_node.node_id:
                 node.current_connections -= 1
 
-        # print(f" from_node.current_connections after = {self.nodes[from_node_id-1].current_connections}")
-        # print(f" to_node.current_connections after = {self.nodes[to_node_id-1].current_connections}")
-
         # If the start node or to node is no longer connected to any bridge, remove it.
-        if bridge.from_node.current_connections == 0:
-            self.nodes.remove(bridge.from_node)
-        if bridge.to_node.current_connections == 0:
-            self.nodes.remove(bridge.to_node)
+        if remove_bridge.from_node.current_connections == 0:
+            self.nodes.remove(remove_bridge.from_node)
+        if remove_bridge.to_node.current_connections == 0:
+            self.nodes.remove(remove_bridge.to_node)
 
         return True
 
