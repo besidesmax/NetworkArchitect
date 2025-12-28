@@ -119,7 +119,7 @@ def test_is_it_solved_complete():
     assert session.is_it_solved() is False
 
 
-def test_calculate_redundancy_score():  # TODO not finished
+def test_calculate_redundancy_score():
     player1 = Player("TestPlayer")
     level1 = Level(Difficulty.LIGHT, 1000, 5000)
     session = GameSession(player1, level1)
