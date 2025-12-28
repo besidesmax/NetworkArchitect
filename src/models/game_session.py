@@ -138,45 +138,6 @@ class GameSession:
         self.network.is_solved = True
         return True
 
-    def calculate_redundancy_score(self):
-        """Calculate network redundancy score by testing all bridge subset removals.
-            Tests how many bridge combinations can be removed while network remains solved.
-            High score = high redundancy = better network quality (GR-14).
-        Raises:
-            ValueError: If network is not solved initially
-        Returns:
-            int: Number of redundant bridge subsets (0-2^n-1)
-        """
-        # Precondition: Network must be solved
-        if self.is_it_solved() is False:
-            raise ValueError("Network must be solved before redundancy calculation")
-
-        # Generate all non-empty subsets (Power Set - empty set)
-        def all_subsets(bridges):
-            return chain(*[combinations(bridges, r) for r in range(1, len(bridges) + 1)])
-
-        # Create stable copy of current bridges (iteration safety)
-        all_bridges = list(self.network.bridges)
-        redundancy_score = 0
-
-        # Test each possible bridge subset removal
-        for subset in all_subsets(all_bridges):
-            # Phase 1: Remove all bridges in current subset
-            for bridge in subset:
-                self.remove_bridge(bridge)
-
-            # Phase 2: Test if network remains solved without this subset
-            if self.is_it_solved() is True:
-                redundancy_score += 1  # Subset is redundant!
-
-            # Phase 3: Restore exact original state
-            for bridge in subset:
-                self.place_bridge(bridge.from_node, bridge.grid_points, bridge.to_node, bridge.bridge_type)
-
-        # Store result for MVVM data binding and return
-        self.network.redundancy_score = redundancy_score
-        return redundancy_score
-
     def create_copy(self):
         test_player = Player("test_Player")
         test_level = Level(self.level.difficulty, self.level.target_score, self.level.start_budget)
@@ -187,6 +148,9 @@ class GameSession:
                 if game_node.grid_point[0].grid_point_id == test_grid_point.grid_point_id:
                     right_grid_point = test_grid_point
                     test_session.network.add_node(Node([right_grid_point], game_node.node_type))
+
+        # add all nodes to node_config to pass is_solved check
+        test_level.node_config.nodes = test_session.network.nodes
 
         for game_bridge in self.network.bridges:
             game_from_node = game_bridge.from_node
@@ -217,3 +181,61 @@ class GameSession:
 
             # adds bridge to test_framework
             test_session.place_bridge(right_from_node, right_grid_points, right_to_node, right_bridge_type)
+
+        return test_session
+
+    def calculate_redundancy_score(self):  # TODO not finished isn't working right
+        """Calculate network redundancy score by testing all bridge subset removals.
+            Tests how many bridge combinations can be removed while network remains solved.
+            High score = high redundancy = better network quality (GR-14).
+        Raises:
+            ValueError: If network is not solved initially
+        Returns:
+            int: Number of redundant bridge subsets (0-2^n-1)
+        """
+        # Precondition: Network must be solved
+        if self.is_it_solved() is False:
+            raise ValueError("Network must be solved before redundancy calculation")
+
+        # creates copy of Session for testing and redundancy_score
+        test_session = self.create_copy()
+        redundancy_score = 0
+
+        # test removal of one bridge
+        # for bridge in test_session.network.bridges:
+        #     test_session.remove_bridge(bridge)
+        #     if test_session.is_it_solved() is True:
+        #         redundancy_score += 1
+        #         test_session = self.create_copy()
+        #
+        # print(f" score after one bridge = {redundancy_score}")
+
+        # Generate all non-empty subsets (Power Set - empty set)
+        def all_subsets(bridges):
+            return chain(*[combinations(bridges, r) for r in range(1, len(bridges) + 1)])
+
+        # Create stable copy of current bridges (iteration safety)
+        all_bridges = list(test_session.network.bridges)
+        all_subsets1 = all_subsets(all_bridges)
+        print(f" anzahl an bridges = {len(test_session.network.bridges)}")
+
+        # Test each possible bridge subset removal
+        for subset in all_subsets(all_bridges):
+            print(subset)
+            # Phase 1: Remove all bridges in current subset
+            for bridge in subset:
+                print(f"Bridge [{bridge.bridge_id}] removed")
+                test_session.remove_bridge(bridge)
+
+            # Phase 2: Test if network remains solved without this subset
+            if test_session.is_it_solved() is True:
+                print(f" is solved True")
+                redundancy_score += 1  # Subset is redundant!
+                print(f" Score = {redundancy_score}")
+
+            # Phase 3: Restore exact original state
+            test_session = self.create_copy()
+
+        # Store result for MVVM data binding and return
+        self.network.redundancy_score = redundancy_score
+        return redundancy_score
