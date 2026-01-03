@@ -146,3 +146,28 @@ def test_delete_bridge() -> None:
     assert to_node in start_nodes
     assert from_node not in network1.nodes
     assert to_node not in network1.nodes
+
+
+def test_find_path() -> None:
+    network1 = Network()
+    # Create test board and server/client nodes at specific positions
+    board1 = create_board(9, 5)
+    node0 = Node([board1[21]], NodeType.SERVER)
+    node1 = Node([board1[41]], NodeType.CLIENT)
+    node2 = Node([board1[23]], NodeType.CLIENT)
+    node3 = Node([board1[43]], NodeType.CLIENT)
+
+    # add bridges
+    network1.add_bridge(node1, [board1[40], board1[39], board1[30]], node0, BridgeType.FIBER)
+    network1.add_bridge(node2, [board1[32]], node1, BridgeType.FIBER)
+    network1.add_bridge(node0, [board1[22]], node2, BridgeType.ETHERNET)
+
+    assert len(network1.find_path(node1)) == 2
+
+    # add bridge
+    network1.add_bridge(node1, [board1[42]], node3, BridgeType.ETHERNET)
+    assert len(network1.find_path(node1)) == 2
+
+    # add bridge
+    network1.add_bridge(node3, [board1[34], board1[25], board1[24]], node2, BridgeType.ETHERNET)
+    assert len(network1.find_path(node1)) == 5
