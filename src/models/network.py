@@ -128,10 +128,8 @@ class Network:
 
         # Decrease connection counters on both endpoint nodes.
         from_node = remove_bridge.from_node
-        from_node_id = from_node.node_id
 
         to_node = remove_bridge.to_node
-        to_node_id = to_node.node_id
 
         for node in self.nodes:
             if node.node_id == from_node.node_id:
@@ -161,3 +159,55 @@ class Network:
             if node.node_type == NodeType.SERVER:
                 return node  # Found the unique Server (GR-08)
         raise ValueError("No Server in Network included")
+
+    def find_path(self, start_node: Node) -> list[list[Bridge]]:
+        """
+        Find all possible paths from a given start node to the server node.
+
+        Each path is represented as an ordered list of Bridge objects that
+        connect the start node to the unique server node in the network.
+
+        Args:
+            start_node (Node): The node from which all paths should start.
+
+        Returns:
+            list[list[Bridge]]: A list of paths, where each path is a list
+            of Bridge instances in the order they are traversed.
+        """
+
+        server = self.get_server()
+        all_path: list[list[Bridge]] = []
+
+        def explorer(current_node: Node, path_so_far: list[Bridge]):
+            """
+            Recursively explore all bridges from the current node and
+            collect complete paths to the server.
+
+            Args:
+                current_node (Node): The node currently being explored.
+                path_so_far (list[Bridge]): The sequence of bridges taken
+                    from the original start node to the current node.
+            """
+            # If the server is reached, store a copy of the current path
+            if current_node == server:
+                all_path.append(path_so_far.copy())
+                return
+
+            # Try all bridges that are incident to the current node
+            for bridge in self.bridges:
+                # Prevent reusing the same bridge within a single path
+                if bridge in path_so_far:
+                    continue
+
+                # Case 1: current node is the bridge's from_node
+                if bridge.from_node == current_node:
+                    next_node = bridge.to_node
+                    explorer(next_node, path_so_far + [bridge])
+
+                # Case 2: current node is the bridge's to_node
+                if bridge.to_node == current_node:
+                    next_node = bridge.from_node
+                    explorer(next_node, path_so_far + [bridge])
+
+        explorer(start_node, [])
+        return all_path
