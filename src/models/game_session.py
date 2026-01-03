@@ -29,7 +29,7 @@ class GameSession:
         # Start each session with the level's initial budget.
         self.current_budget = level.start_budget
 
-        # Network will later hold all nodes and bridges for this level.
+        # Network will later hold all nodes and bridges for this session.
         self.network = Network()
 
     def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
