@@ -186,7 +186,7 @@ class GameSession:
 
         return test_session
 
-    def calculate_redundancy_score(self):
+    def calculate_redundancy_score(self) -> int:
         """ Calculates redundancy score per GR-14: Max number of failing bridges until
             at least one node disconnects from server
 
@@ -229,3 +229,47 @@ class GameSession:
         # Store result for MVVM data binding and return
         self.network.redundancy_score = redundancy_score
         return redundancy_score
+
+    def calculate_performance(self):
+        """
+            Calculate network performance score per GR-13 [Spezifikationsdokument].
+
+            Computes average bottleneck bandwidth (min per path, max per node)
+            across all client nodes (excludes server). Network must be solved.
+
+            Raises:
+                ValueError: If network is not solved (GR-05 violated).
+
+            Returns:
+                float: Performance score (avg bottleneck BW in arbitrary units).
+            """
+
+        # Precondition: Network must be solved
+        if not self.is_it_solved():
+            raise ValueError("Network must be solved before performance calculation")
+
+        network_bandwidth: list[int] = []
+
+        # Iterate over all nodes, calculate max bottleneck per node
+        for node in self.network.nodes:
+            node_bandwidth: list[int] = []
+            for path in self.network.find_path(node):
+                path_bandwidth = []
+                for bridge in path:
+                    path_bandwidth.append(bridge.bridge_type.bandwidth)
+
+                # print(path_bandwidth)
+                if path_bandwidth:
+                    # Bottleneck = min bandwidth on path (GR-13)
+                    node_bandwidth.append(min(path_bandwidth))
+
+            if node_bandwidth:
+                # Best path for this node = max over path bottlenecks
+                network_bandwidth.append(max(node_bandwidth))
+
+        total_bandwidth = sum(network_bandwidth)
+        # Exclude server node (GR-08: exactly 1 server)
+        num_node = len(self.network.nodes) - 1
+        performance_score = total_bandwidth / num_node
+
+        return performance_score
