@@ -151,3 +151,40 @@ def test_calculate_redundancy_score():
     session.place_bridge(node3, [session.level.game_board[22]], node4, BridgeType.ETHERNET)
 
     assert session.calculate_redundancy_score() == 2
+
+
+def test_calculate_performance():
+    player1 = Player("TestPlayer")
+    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    session = GameSession(player1, level1)
+
+    # add Nodes
+    node0 = Node([session.level.game_board[21]], NodeType.SERVER)
+    node1 = Node([session.level.game_board[41]], NodeType.CLIENT)
+    node2 = Node([session.level.game_board[23]], NodeType.CLIENT)
+
+    # add node_config
+    session.level.node_config.nodes = [node0, node1, node2]
+
+    # add bridges
+    session.place_bridge(node1, [session.level.game_board[40],
+                                 session.level.game_board[39],
+                                 session.level.game_board[30]], node0, BridgeType.FIBER)
+    session.place_bridge(node0, [session.level.game_board[22]], node2, BridgeType.FIBER)
+    session.place_bridge(node2, [session.level.game_board[32]], node1, BridgeType.FIBER)
+
+    assert session.calculate_performance() == 2000
+
+    # add Node
+    node3 = Node([session.level.game_board[43]], NodeType.CLIENT)
+
+    # adapte node_config
+    session.level.node_config.nodes = [node0, node1, node2, node3]
+
+    # add bridges
+    session.place_bridge(node3, [session.level.game_board[34],
+                                 session.level.game_board[25],
+                                 session.level.game_board[24]], node2, BridgeType.ETHERNET)
+    session.place_bridge(node3, [session.level.game_board[42]], node1, BridgeType.ETHERNET)
+
+    assert session.calculate_performance() == 1366.6666666666667
