@@ -232,17 +232,17 @@ class GameSession:
 
     def calculate_performance(self):
         """
-            Calculate network performance score per GR-13 [Spezifikationsdokument].
+        Calculate network performance score per GR-13.
 
-            Computes average bottleneck bandwidth (min per path, max per node)
-            across all client nodes (excludes server). Network must be solved.
+        Computes average bottleneck bandwidth (min per path, max per node)
+        across all client nodes (excludes server). Network must be solved.
 
-            Raises:
-                ValueError: If network is not solved (GR-05 violated).
+        Raises:
+            ValueError: If network is not solved (GR-05 violated).
 
-            Returns:
-                float: Performance score (avg bottleneck BW in arbitrary units).
-            """
+        Returns:
+            float: Performance score (avg bottleneck BW in arbitrary units).
+        """
 
         # Precondition: Network must be solved
         if not self.is_it_solved():
