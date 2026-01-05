@@ -7,12 +7,14 @@ class Level:
     """Represents a single puzzle level with a fixed grid, node setup and scoring targets."""
     id_counter = 0  # Simple in-memory counter to assign unique level IDs.
 
-    def __init__(self, difficulty: Difficulty, target_score: int, start_budget: int):
+    def __init__(self, difficulty: Difficulty, target_performance_score: int, target_redundancy_score: int,
+                 start_budget: int):
         """Initialize a level with its difficulty, scoring target and starting budget.
 
         Args:
             difficulty: Difficulty setting that defines the default grid size.
-            target_score: Score threshold the player should reach.
+            target_performance_score: Score threshold the player should reach.
+            target_redundancy_score: Score threshold the player should reach.
             start_budget: Initial budget available in this level.
         """
         # Assign a unique ID to this level instance.
@@ -24,9 +26,12 @@ class Level:
         self.grid_height = difficulty.height
         # Each level owns its own node configuration and network instance.
         self.node_config = NodeConfig()
-        if target_score < 0:
-            raise ValueError("Target Score has to be higher then 0")
-        self.target_score = target_score
+        if target_performance_score < 0:
+            raise ValueError("Target Performance Score has to be higher then 0")
+        self.target_performance_score = target_performance_score
+        if target_redundancy_score < 0:
+            raise ValueError("Target Redundancy Score has to be higher then 0")
+        self.target_redundancy_score = target_redundancy_score
         if start_budget < 0:
             raise ValueError("StartBudget has to be higher then 0")
         self.start_budget = start_budget
