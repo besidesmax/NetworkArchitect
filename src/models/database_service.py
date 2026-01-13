@@ -1,5 +1,12 @@
+import json
 import os
 import sqlite3
+from typing import List, Dict, Any
+
+from models.difficulty import Difficulty
+from models.level import Level
+from models.node import Node
+from models.node_type import NodeType
 from models.player import Player
 
 
@@ -27,7 +34,7 @@ class DatabaseService:
             CREATE TABLE IF NOT EXISTS levels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 difficulty TEXT NOT NULL,  -- 'easy', 'medium', 'hard'
-                node_config TEXT NOT NULL,  -- JSON: [{"x":1,"y":2,"type":"server",...}]
+                node_config TEXT NOT NULL,
                 target_redundancy_score INTEGER NOT NULL,
                 target_performance_score INTEGER NOT NULL,
                 start_budget INTEGER NOT NULL
@@ -83,3 +90,163 @@ class DatabaseService:
         player.player_id = player_id
 
         return player
+
+    def get_player_by_name(self, name: str) -> Player | None:
+        """
+        Retrieves a Player by name from the database.
+
+        Args:
+            name (str): Player name to lookup.
+
+        Returns:
+            Player | None: Player instance if found, None otherwise.
+        """
+        # Validate input
+        if not name or len(name.strip()) < 2:
+            return None
+
+        name = name.strip()
+
+        cursor = self.conn.cursor()
+
+        # Fetch player by name (parameterized query)
+        cursor.execute("SELECT id, name FROM players WHERE name = ?", (name,))
+        row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        # Reconstruct Player instance from database row
+        player_id, player_name = row
+        player = Player(name=player_name)
+        player.player_id = player_id
+
+        return player
+
+    def create_level(self, difficulty: Difficulty, target_performance_score: int,
+                     target_redundancy_score: int, start_budget: int, node_config_json: str) -> Level:
+        """Create new level and persist to database.
+
+        Args:
+            difficulty: Game difficulty level enum.
+            target_performance_score: Target score for performance metric.
+            target_redundancy_score: Target score for redundancy metric.
+            start_budget: Player starting resource budget.
+            node_config_json: JSON array of nodes
+                e.g. '[{"grid_point_id":2,"node_type":"CLIENT"}]'
+
+        Raises:
+            ValueError: Invalid JSON, missing fields, or unknown grid points.
+            json.JSONDecodeError: Malformed JSON string.
+
+        Returns:
+            Level instance with populated nodes from JSON config.
+        """
+        # Validate JSON input
+        if not node_config_json.strip():
+            raise ValueError("node_config_json cannot be empty")
+
+        try:
+            data: List[Dict[str, Any]] = json.loads(node_config_json)
+            if not isinstance(data, list) or len(data) == 0:
+                raise ValueError("node_config_json must be non-empty node array")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON format: {e}") from e
+
+        cursor = self.conn.cursor()
+
+        # Persist level metadata
+        cursor.execute("""
+                INSERT INTO levels (
+                    difficulty, node_config, target_redundancy_score,
+                    target_performance_score, start_budget
+                ) VALUES (?, ?, ?, ?, ?)
+            """, (
+            difficulty.display_name,
+            node_config_json,
+            target_redundancy_score,
+            target_performance_score,
+            start_budget
+        ))
+
+        level = Level(difficulty, target_performance_score, target_redundancy_score, start_budget)
+        level_id = cursor.lastrowid
+        level.level_id = level_id
+
+        self.conn.commit()
+
+        # Reconstruct NodeConfig from JSON
+        for node_data in data:
+            node_grid_point_id: int = node_data["grid_point_id"]
+
+            # Locate GridPoint by ID
+            node_grid_point = None
+            for level_grid_point in level.game_board:
+                if level_grid_point.grid_point_id == node_grid_point_id:
+                    node_grid_point = level_grid_point
+                    break
+
+            # create Node and add to NodeConfig
+            if node_grid_point is None:
+                raise ValueError(f"GridPoint ID {node_grid_point_id} not found")
+
+            node_type_enum = NodeType[node_data["node_type"]]
+            level.node_config.add_node(Node([node_grid_point], node_type_enum))
+
+        return level
+
+    def get_level(self, level_id: int) -> Level:
+        """Retrieve level from database by ID.
+
+        Args:
+            level_id: Primary key of level in database.
+
+        Raises:
+            ValueError: Level ID not found in database.
+
+        Returns:
+            Level with nodes, game_board, and metadata.
+        """
+        if level_id <= 0:
+            raise ValueError("level_id must be positive integer")
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT difficulty, node_config, target_redundancy_score, "
+            "target_performance_score, start_budget FROM levels WHERE id = ?",
+            (level_id,)
+        )
+
+        row = cursor.fetchone()
+        if row is None:
+            raise ValueError(f"Level ID {level_id} not found")
+
+        # Parse metadata
+        difficulty = Difficulty[row[0]]
+        node_config_json = row[1]
+        target_perf = row[2]
+        target_red = row[3]
+        start_budget = row[4]
+
+        # Reconstruct Level
+        level = Level(difficulty, target_perf, target_red, start_budget)
+        level.level_id = level_id
+
+        # Reconstruct Node
+        data: List[Dict[str, Any]] = json.loads(node_config_json)
+        for node_data in data:
+            node_grid_point_id: int = node_data["grid_point_id"]
+
+            node_grid_point = None
+            for grid_point in level.game_board:
+                if grid_point.grid_point_id == node_grid_point_id:
+                    node_grid_point = grid_point
+                    break
+
+            if node_grid_point is None:
+                raise ValueError(f"GridPoint ID {node_grid_point_id} not found")
+
+            node_type_enum = NodeType[node_data["node_type"]]
+            level.node_config.add_node(Node([node_grid_point], node_type_enum))
+
+        return level
