@@ -250,3 +250,74 @@ class DatabaseService:
             level.node_config.add_node(Node([node_grid_point], node_type_enum))
 
         return level
+
+    def delete_level(self, level_id: int) -> None:
+        """Delete level from database by ID.
+
+        Args:
+            level_id: Primary key of level to delete.
+
+        Raises:
+            ValueError: Level ID not found or invalid.
+        """
+        if level_id <= 0:
+            raise ValueError("level_id must be positive integer")
+
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM levels WHERE id = ?", (level_id,))
+
+        if cursor.rowcount == 0:
+            raise ValueError(f"Level ID {level_id} not found")
+
+        self.conn.commit()
+
+    def update_level(self, level_id: int, column: str, value: Any) -> Level:
+        """Update single column of level by ID.
+
+        Args:
+            level_id: Primary key of level to update.
+            column: Column name ('difficulty', 'target_performance_score', etc.).
+            value: New value (str for difficulty, int for scores/budget).
+
+        Raises:
+            ValueError: Invalid level_id, column, or value type.
+            sqlite3.IntegrityError: Database constraint violation.
+
+        Returns:
+            Updated Level instance (fresh from DB).
+        """
+        if level_id <= 0:
+            raise ValueError("level_id must be positive integer")
+
+        valid_columns = {
+            'difficulty', 'target_redundancy_score',
+            'target_performance_score', 'start_budget'
+        }
+
+        if column not in valid_columns:
+            raise ValueError(f"Invalid column '{column}'. Valid: {valid_columns}")
+
+        # Type validation
+        if column == 'difficulty':
+            try:
+                Difficulty(value)
+            except ValueError:
+                raise ValueError(f"Invalid difficulty: '{value}'")
+            value = Difficulty(value).display_name
+        elif column in ('target_redundancy_score', 'target_performance_score', 'start_budget'):
+            if not isinstance(value, int) or value < 0:
+                raise ValueError(f"{column} must be non-negative integer")
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            f"UPDATE levels SET {column} = ? WHERE id = ?",
+            (value, level_id)
+        )
+
+        if cursor.rowcount == 0:
+            raise ValueError(f"Level ID {level_id} not found")
+
+        self.conn.commit()
+
+        # Return fresh instance
+        return self.get_level(level_id)
