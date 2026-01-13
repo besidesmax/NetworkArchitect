@@ -5,7 +5,6 @@ from models.node_config import NodeConfig
 
 class Level:
     """Represents a single puzzle level with a fixed grid, node setup and scoring targets."""
-    id_counter = 0  # Simple in-memory counter to assign unique level IDs.
 
     def __init__(self, difficulty: Difficulty, target_performance_score: int, target_redundancy_score: int,
                  start_budget: int):
@@ -17,10 +16,7 @@ class Level:
             target_redundancy_score: Score threshold the player should reach.
             start_budget: Initial budget available in this level.
         """
-        # Assign a unique ID to this level instance.
-        self.level_id = Level.id_counter
-        Level.id_counter += 1
-
+        self.level_id = None  # Will be set by DataBaseService
         self.difficulty = difficulty
         self.grid_width = difficulty.width
         self.grid_height = difficulty.height
