@@ -9,5 +9,4 @@ class Player:
         """
         # Assign a unique ID to this player instance.
         self.player_id = None  # Will be set by DataBaseService
-
         self.name = name
