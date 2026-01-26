@@ -18,11 +18,3 @@ class GridPoint:
         self.used = False
         # Register every created GridPoint instance globally
         GridPoint.all_instances.append(self)
-
-    def reset_all_grid_point() -> None:
-        # TODO solve Problem that with this function, also used Grid that used by Nodes are reset to use = False
-        for grid_point in GridPoint.all_instances:
-            grid_point.used = False
-
-
-
