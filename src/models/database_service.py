@@ -123,6 +123,39 @@ class DatabaseService:
 
         return player
 
+    def get_player_by_id(self, player_id: int) -> Player:
+        """
+        Retrieve a Player by ID from the database.
+
+        Args:
+            player_id: Primary key of the player to fetch.
+
+        Returns:
+            Player instance if found.
+
+        Raises:
+            ValueError: If player_id is invalid or not found in database.
+        """
+        # Validate input
+        if not isinstance(player_id, int) or player_id <= 0:
+            raise ValueError("player_id must be a positive integer")
+
+        cursor = self.conn.cursor()
+
+        # Fetch player by ID (parameterized query)
+        cursor.execute("SELECT id, name FROM players WHERE id = ?", (player_id,))
+        row = cursor.fetchone()
+
+        if row is None:
+            raise ValueError(f"Player ID {player_id} not found in database")
+
+        # Reconstruct Player instance from database row
+        player_id, player_name = row
+        player = Player(name=player_name)
+        player.player_id = player_id
+
+        return player
+
     def create_level(self, difficulty: Difficulty, target_performance_score: int,
                      target_redundancy_score: int, start_budget: int, node_config_json: str) -> Level:
         """Create new level and persist to database.
@@ -321,3 +354,18 @@ class DatabaseService:
 
         # Return fresh instance
         return self.get_level(level_id)
+
+    def get_all_players(self) -> List[Player]:
+        """Retrieve all players from database for selection screen."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, name FROM players ORDER BY name")
+        rows = cursor.fetchall()
+
+        players = []
+        for row in rows:
+            player_id, name = row
+            player = Player(name)
+            player.player_id = player_id
+            players.append(player)
+
+        return players
