@@ -156,6 +156,21 @@ class DatabaseService:
 
         return player
 
+    def get_all_players(self) -> List[Player]:
+        """Retrieve all players from database for selection screen."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, name FROM players ORDER BY name")
+        rows = cursor.fetchall()
+
+        players = []
+        for row in rows:
+            player_id, name = row
+            player = Player(name)
+            player.player_id = player_id
+            players.append(player)
+
+        return players
+
     def create_level(self, difficulty: Difficulty, target_performance_score: int,
                      target_redundancy_score: int, start_budget: int, node_config_json: str) -> Level:
         """Create new level and persist to database.
@@ -284,6 +299,33 @@ class DatabaseService:
 
         return level
 
+    def get_all_levels(self) -> List[Level]:
+        """
+        Retrieve all levels from the database for level selection screen.
+
+        Returns all levels ordered by difficulty, with populated node_config
+        and game_board for UI display.
+
+        Returns:
+            List of all Level instances ordered by difficulty and id.
+
+        Raises:
+            ValueError: If a level cannot be loaded or JSON parsing fails.
+        """
+        cursor = self.conn.cursor()
+
+        # Fetch all level IDs ordered by difficulty and id
+        cursor.execute("SELECT id FROM levels ORDER BY difficulty, id")
+        rows = cursor.fetchall()  # ← Nur IDs aus DB!
+
+        levels = []
+        for row in rows:
+            level_id = row[0]
+            level = self.get_level(level_id)
+            levels.append(level)
+
+        return levels
+
     def delete_level(self, level_id: int) -> None:
         """Delete level from database by ID.
 
@@ -354,18 +396,3 @@ class DatabaseService:
 
         # Return fresh instance
         return self.get_level(level_id)
-
-    def get_all_players(self) -> List[Player]:
-        """Retrieve all players from database for selection screen."""
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT id, name FROM players ORDER BY name")
-        rows = cursor.fetchall()
-
-        players = []
-        for row in rows:
-            player_id, name = row
-            player = Player(name)
-            player.player_id = player_id
-            players.append(player)
-
-        return players
