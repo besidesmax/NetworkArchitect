@@ -396,3 +396,88 @@ class DatabaseService:
 
         # Return fresh instance
         return self.get_level(level_id)
+
+    def get_player_completed_levels(self, player_id: int) -> List[Dict[str, Any]]:
+        """
+        Retrieve all completed levels for a specific player.
+
+        Args:
+            player_id: Player ID to query.
+
+        Returns:
+            List of dicts with level_id, completion_time, and scores.
+            Empty list if player has no completed levels.
+
+        Raises:
+            ValueError: If player_id is invalid.
+        """
+        if not isinstance(player_id, int) or player_id <= 0:
+            raise ValueError("player_id must be a positive integer")
+
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+                SELECT 
+                    level_id, 
+                    completed_at,
+                    achieved_performance,
+                    achieved_redundancy
+                FROM player_completed_levels
+                WHERE player_id = ?
+                ORDER BY level_id DESC
+            """, (player_id,))
+
+        rows = cursor.fetchall()
+
+        player_completed_levels = []
+        for row in rows:
+            player_completed_levels.append({"level_id": row[0],
+                                            "completed_at": row[1],
+                                            "achieved_performance": row[2],
+                                            "achieved_redundancy": row[3]
+                                            }
+                                           )
+
+        return player_completed_levels
+
+    def get_level_completed_by_players(self, level_id: int) -> List[Dict[str, Any]]:
+        """
+        Retrieve all players who completed a specific level.
+
+        Args:
+            level_id: Level ID to query.
+
+        Returns:
+            List of dicts with player_id, completion_time, and scores.
+            Empty list if no players completed this level.
+
+        Raises:
+            ValueError: If level_id is invalid.
+        """
+        if not isinstance(level_id, int) or level_id <= 0:
+            raise ValueError("level_id must be a positive integer")
+
+        cursor = self.conn.cursor()
+        cursor.execute("""
+                        SELECT 
+                            player_id, 
+                            completed_at,
+                            achieved_performance,
+                            achieved_redundancy
+                        FROM player_completed_levels
+                        WHERE level_id = ?
+                        ORDER BY completed_at DESC
+                    """, (level_id,))
+
+        rows = cursor.fetchall()
+
+        result = []
+        for row in rows:
+            result.append({"player_id": row[0],
+                           "completed_at": row[1],
+                           "achieved_performance": row[2],
+                           "achieved_redundancy": row[3]
+                           }
+                          )
+
+        return result
