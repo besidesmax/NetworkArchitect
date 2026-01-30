@@ -22,7 +22,8 @@ class LevelSelectionViewModel(QObject):
         self._db_service = db_service
         self._players_list: list = []
         self._unlocked_levels_list: list = []
-        self._selected_player_u_level: dict = {}
+        self._selected_player_and_level: dict = {}
+        self._new_player: list = []
 
     # === PROPERTIES ===
     @Property(list, notify=players_loaded)
@@ -34,6 +35,16 @@ class LevelSelectionViewModel(QObject):
     def unlocked_levels_list(self) -> List[Dict[str, Any]]:
         """List of unlocked levels as dicts with 'level_id' and 'difficulty' keys."""
         return self._unlocked_levels_list
+
+    @Property(list, notify=player_created)
+    def new_player(self) -> List[Dict[str, Any]]:
+        """new player that is created"""
+        return self._new_player
+
+    @Property(dict, notify=player_level_selected)
+    def level_and_player(self) -> Dict[str, Any]:
+        """selected Player and Level for new game"""
+        return self._selected_player_and_level
 
     # === SLOTS ===
     @Slot()
@@ -95,3 +106,61 @@ class LevelSelectionViewModel(QObject):
             # Unexpected error (database connection, corruption, etc.)
             self._unlocked_levels_list = []
             self.error_occurred.emit(f"Failed to load levels: {str(e)}")
+
+    @Slot(str)
+    def create_player(self, name: str):
+        """
+        Creates a new player and emits player_created or error_occurred signal.
+
+        Args:
+            name (str): Player name (2-20 characters, must be unique).
+        """
+        try:
+            new_player = self._db_service.create_player(name)
+            self._new_player = []
+            self._new_player = [{"id": new_player.player_id, "name": new_player.name}]
+            self.player_created.emit()
+
+        except ValueError as e:
+            self.error_occurred.emit(f"Failed to create player: {str(e)}")
+
+    @Slot(int, int)
+    def select_level_and_player(self, player_id: int, level_id: int):
+        """
+        Validates and stores selected player and level for game start.
+
+        Args:
+            player_id (int): ID of selected player.
+            level_id (int): ID of selected level.
+
+        Emits:
+            player_level_selected: When valid selection is stored.
+            error_occurred: When validation fails (empty IDs or not found in database).
+
+        Returns:
+            None
+        """
+        # Validate player_id is not None
+        if player_id is None:
+            self.error_occurred.emit("player_id is empty")
+            return
+        # Validate level_id is not None
+        if level_id is None:
+            self.error_occurred.emit("level_id is empty")
+            return
+        # Verify player exists in database
+        try:
+            self._db_service.get_player_by_id(player_id)
+        except ValueError as e:
+            self.error_occurred.emit(f"Failed to load player: {str(e)}")
+            return
+        # Verify level exists in database
+        try:
+            self._db_service.get_level(level_id)
+        except ValueError as e:
+            self.error_occurred.emit(f"Failed to load level: {str(e)}")
+            return
+
+        # Store validated selection
+        self._selected_player_and_level = {"player_id": player_id, "level_id": level_id}
+        self.player_level_selected.emit()
