@@ -1,5 +1,7 @@
-from PySide6.QtCore import QObject, Signal, Property, Slot
 from typing import List, Dict, Any
+
+from PySide6.QtCore import QObject, Signal, Property, Slot
+
 from models.database_service import DatabaseService
 
 
