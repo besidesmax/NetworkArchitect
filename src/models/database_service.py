@@ -481,3 +481,60 @@ class DatabaseService:
                           )
 
         return result
+
+    def get_unlocked_levels_by_player(self, player_id: int) -> List[Dict[str, Any]]:
+        """
+        Retrieve all unlocked levels for a specific player.
+
+        Unlocking logic (sequential):
+        - Level 1 is always unlocked
+        - Level N is unlocked if Level N-1 is completed
+
+        Args:
+            player_id: ID of the player to query.
+
+        Returns:
+            List of dicts with level_id and difficulty for all unlocked levels.
+            Each dict contains: {"level_id": int, "difficulty": str}
+
+        Raises:
+            ValueError: If player_id is invalid or not found in database.
+        """
+        # Validate player exists
+        self.get_player_by_id(player_id)
+
+        cursor = self.conn.cursor()
+        # Fetch all completed levels for this player with difficulty via JOIN
+        cursor.execute("""
+                SELECT 
+                    pcl.level_id,
+                    l.difficulty              
+                FROM player_completed_levels pcl
+                JOIN levels l ON pcl.level_id = l.id
+                WHERE pcl.player_id = ?
+                ORDER BY pcl.level_id ASC
+            """, (player_id,))
+
+        rows = cursor.fetchall()
+        unlocked_levels = []
+
+        # add all completed levels
+        for row in rows:
+            unlocked_levels.append({"level_id": row[0], "difficulty": row[1]})
+
+        # find highest level_id
+        if unlocked_levels:
+            highest_level_id = unlocked_levels[-1]["level_id"]
+        else:
+            highest_level_id = 0
+
+        try:
+            next_level = self.get_level(highest_level_id + 1)
+            unlocked_levels.append({
+                "level_id": next_level.level_id,
+                "difficulty": next_level.difficulty.display_name})
+        except ValueError:
+            # No more levels available - player has completed all levels
+            pass
+
+        return unlocked_levels
