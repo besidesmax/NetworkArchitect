@@ -51,7 +51,7 @@ class GameSession:
 
         # Ensure that the player has enough budget for this bridge placement.
         if self.current_budget < bridge_type.cost:
-            return False
+            raise ValueError("Insufficient budget")
 
         try:
             # Delegate the actual bridge creation and validation to the Network model.
@@ -60,7 +60,7 @@ class GameSession:
             # Deduct the cost of the placed bridge from the session's current budget.
             self.current_budget = self.current_budget - bridge_type.cost
         except ValueError:
-            return False
+            raise
         return True
 
     def remove_bridge(self, bridge: Bridge) -> bool:
