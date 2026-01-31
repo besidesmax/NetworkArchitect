@@ -6,6 +6,7 @@ from models.player import Player
 from models.level import Level
 from models.difficulty import Difficulty
 from models.grid_point import GridPoint
+from models.node import Node
 
 
 @pytest.fixture(scope="session")
@@ -19,7 +20,7 @@ def qapp():
 
 @pytest.fixture
 def mock_db_service():
-    """Create mock DatabaseService."""
+    """Create a fully configured mock DatabaseService."""
     mock_service = Mock()
 
     mock_player = Mock(spec=Player)
@@ -32,19 +33,36 @@ def mock_db_service():
     mock_level.difficulty = Difficulty.LIGHT
     mock_level.start_budget = 1000
 
-    grid_point_1 = Mock(spec=GridPoint)
-    grid_point_1.grid_point_id = 1
-    grid_point_1.position_x = 100
-    grid_point_1.position_y = 200
+    gridpoint1 = Mock(spec=GridPoint)
+    gridpoint1.grid_point_id = 1
+    gridpoint1.position_x = 100
+    gridpoint1.position_y = 200
 
-    grid_point_2 = Mock(spec=GridPoint)
-    grid_point_2.grid_point_id = 2
-    grid_point_2.position_x = 300
-    grid_point_2.position_y = 400
+    gridpoint2 = Mock(spec=GridPoint)
+    gridpoint2.grid_point_id = 2
+    gridpoint2.position_x = 300
+    gridpoint2.position_y = 400
 
-    mock_level.game_board = [grid_point_1, grid_point_2]
+    mock_level.game_board = [gridpoint1, gridpoint2]
+
+    node1 = Mock(spec=Node)
+    node1.node_id = 1
+    node1.grid_point = [gridpoint1]
+    node1.node_type = Mock()
+    node1.node_type.name = "SERVER"
+    node1.node_type.max_connections = 4
+    node1.current_connections = 0
+
+    node2 = Mock(spec=Node)
+    node2.node_id = 2
+    node2.grid_point = [gridpoint2]
+    node2.node_type = Mock()
+    node2.node_type.name = "CLIENT"
+    node2.node_type.max_connections = 2
+    node2.current_connections = 0
+
     mock_level.node_config = Mock()
-    mock_level.node_config.nodes = []
+    mock_level.node_config.nodes = [node1, node2]
 
     mock_service.get_level.return_value = mock_level
 
