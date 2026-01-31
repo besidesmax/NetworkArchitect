@@ -1,6 +1,7 @@
 """Coordinate transformation between model grid and screen pixels."""
 
 from typing import Tuple
+
 from models.grid_point import GridPoint
 
 # Constants for default rendering configuration
