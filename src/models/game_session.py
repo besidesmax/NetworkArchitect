@@ -77,7 +77,7 @@ class GameSession:
         try:
             self.network.delete_bridge(bridge)
         except ValueError:
-            return False
+            raise
 
         # Refund the bridge cost to the session's current budget.
         self.current_budget += bridge.bridge_type.cost
