@@ -1,4 +1,0 @@
--r requirements.txt
-pytest>=7.4.0
-pytest-qt>=4.3.0
-PyInstaller>=6.0.0
