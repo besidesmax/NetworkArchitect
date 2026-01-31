@@ -41,12 +41,13 @@ class DatabaseService:
             );
     
             CREATE TABLE IF NOT EXISTS player_completed_levels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 player_id INTEGER NOT NULL,
                 level_id INTEGER NOT NULL,
                 completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                elapsed_time_seconds INTEGER,
                 achieved_redundancy INTEGER,
                 achieved_performance INTEGER,
-                PRIMARY KEY (player_id, level_id),
                 FOREIGN KEY(player_id) REFERENCES players(id),
                 FOREIGN KEY(level_id) REFERENCES levels(id)
             );
@@ -420,6 +421,7 @@ class DatabaseService:
                 SELECT 
                     level_id, 
                     completed_at,
+                    elapsed_time_seconds,
                     achieved_performance,
                     achieved_redundancy
                 FROM player_completed_levels
@@ -433,8 +435,9 @@ class DatabaseService:
         for row in rows:
             player_completed_levels.append({"level_id": row[0],
                                             "completed_at": row[1],
-                                            "achieved_performance": row[2],
-                                            "achieved_redundancy": row[3]
+                                            "elapsed_time_seconds": row[2],
+                                            "achieved_performance": row[3],
+                                            "achieved_redundancy": row[4]
                                             }
                                            )
 
@@ -462,6 +465,7 @@ class DatabaseService:
                         SELECT 
                             player_id, 
                             completed_at,
+                            elapsed_time_seconds,
                             achieved_performance,
                             achieved_redundancy
                         FROM player_completed_levels
@@ -475,8 +479,9 @@ class DatabaseService:
         for row in rows:
             result.append({"player_id": row[0],
                            "completed_at": row[1],
-                           "achieved_performance": row[2],
-                           "achieved_redundancy": row[3]
+                           "elapsed_time_seconds": row[2],
+                           "achieved_performance": row[3],
+                           "achieved_redundancy": row[4]
                            }
                           )
 
@@ -506,7 +511,7 @@ class DatabaseService:
         cursor = self.conn.cursor()
         # Fetch all completed levels for this player with difficulty via JOIN
         cursor.execute("""
-                SELECT 
+                SELECT DISTINCT
                     pcl.level_id,
                     l.difficulty              
                 FROM player_completed_levels pcl
@@ -538,3 +543,52 @@ class DatabaseService:
             pass
 
         return unlocked_levels
+
+    def save_completed_level(self, player_id: int, level_id: int, elapsed_time_seconds: int,
+                             achieved_redundancy: int, achieved_performance: int) -> None:
+        """
+        Save completed level attempt for player to database.
+
+        Creates new entry for each completion, allowing multiple attempts
+        per level to be tracked.
+
+        Args:
+            player_id: Player who completed the level.
+            level_id: Level that was completed.
+            elapsed_time_seconds: Time taken to complete level in seconds.
+            achieved_performance: Performance score achieved.
+            achieved_redundancy: Redundancy score achieved.
+
+        Raises:
+            ValueError: If player_id, level_id, or elapsed_time_seconds
+                        is invalid or not found in database.
+        """
+        cursor = self.conn.cursor()
+
+        # Validate inputs
+        # Player_id
+        cursor.execute("SELECT id, name FROM players WHERE id = ?", (player_id,))
+        row = cursor.fetchone()
+        if row is None:
+            raise ValueError(f"Player ID {player_id} not found in database")
+        # Level_id
+        cursor.execute("SELECT id, difficulty FROM levels WHERE id = ?", (level_id,))
+        row = cursor.fetchone()
+        if row is None:
+            raise ValueError(f"Level ID {level_id} not found in database")
+        # elapsed_time
+        if not isinstance(elapsed_time_seconds, int) or elapsed_time_seconds < 0:
+            raise ValueError("elapsed_time_seconds must be non-negative integer")
+
+        # Insert new attempt (allows multiple entries per player-level pair)
+        cursor.execute("""
+            INSERT INTO player_completed_levels (
+                player_id,
+                level_id,
+                elapsed_time_seconds,
+                achieved_performance,
+                achieved_redundancy
+            ) VALUES (?, ?, ?, ?, ?)
+        """, (player_id, level_id, elapsed_time_seconds, achieved_performance, achieved_redundancy))
+
+        self.conn.commit()
