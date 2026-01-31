@@ -1,12 +1,13 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from PySide6.QtWidgets import QApplication
 
-from models.player import Player
-from models.level import Level
 from models.difficulty import Difficulty
 from models.grid_point import GridPoint
+from models.level import Level
 from models.node import Node
+from models.player import Player
 
 
 @pytest.fixture(scope="session")

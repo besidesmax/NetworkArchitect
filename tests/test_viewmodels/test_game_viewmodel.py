@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from viewmodels.game_viewmodel import GameViewModel
 from models.difficulty import Difficulty
+from viewmodels.game_viewmodel import GameViewModel
 
 
 class TestGameViewModelInit:

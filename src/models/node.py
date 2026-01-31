@@ -1,5 +1,5 @@
-from models.node_type import NodeType
 from models.grid_point import GridPoint
+from models.node_type import NodeType
 
 
 class Node:

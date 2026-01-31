@@ -4,6 +4,7 @@ from models.node import Node
 
 class Validator:
     """this class validates all game rules"""
+
     @staticmethod
     def is_grid_point_used(grid_points: list[GridPoint]) -> None:
         """Ensure no GridPoint in the list is already used.
