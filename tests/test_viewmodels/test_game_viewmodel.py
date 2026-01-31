@@ -1,58 +1,11 @@
-import pytest
-from unittest.mock import Mock, patch
-from PySide6.QtWidgets import QApplication
+from unittest.mock import patch
 
 from viewmodels.game_viewmodel import GameViewModel
-from models.player import Player
-from models.level import Level
 from models.difficulty import Difficulty
-from models.grid_point import GridPoint
-
-
-@pytest.fixture(scope="session")
-def qapp():
-    """Create QApplication instance for all tests."""
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication([])
-    yield app
 
 
 class TestGameViewModelInit:
     """Test GameViewModel initialization."""
-
-    @pytest.fixture
-    def mock_db_service(self):
-        """Create mock DatabaseService."""
-        mock_service = Mock()
-
-        mock_player = Mock(spec=Player)
-        mock_player.player_id = 1
-        mock_player.name = "TestPlayer"
-        mock_service.get_player_by_id.return_value = mock_player
-
-        mock_level = Mock(spec=Level)
-        mock_level.level_id = 1
-        mock_level.difficulty = Difficulty.LIGHT
-        mock_level.start_budget = 1000
-
-        grid_point_1 = Mock(spec=GridPoint)
-        grid_point_1.grid_point_id = 1
-        grid_point_1.position_x = 100
-        grid_point_1.position_y = 200
-
-        grid_point_2 = Mock(spec=GridPoint)
-        grid_point_2.grid_point_id = 2
-        grid_point_2.position_x = 300
-        grid_point_2.position_y = 400
-
-        mock_level.game_board = [grid_point_1, grid_point_2]
-        mock_level.node_config = Mock()
-        mock_level.node_config.nodes = []
-
-        mock_service.get_level.return_value = mock_level
-
-        return mock_service
 
     @patch('viewmodels.game_viewmodel.GameSession')
     def test_init_loads_player_from_database(
@@ -154,3 +107,200 @@ class TestGameViewModelInit:
         viewmodel = GameViewModel(player_id, level_id, mock_db_service)
 
         assert viewmodel._elapsed_seconds == 0
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_init_connects_timer_signal(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that __init__ connects timer timeout to _on_timer_tick."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        assert viewmodel._timer.isActive()
+
+        viewmodel._on_timer_tick()
+        assert viewmodel._elapsed_seconds == 1
+
+
+class TestGameViewModelTimerSlots:
+    """Test timer-related slots."""
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_pause_timer_stops_timer(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that pause_timer stops the timer."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        assert viewmodel._timer.isActive()
+
+        viewmodel.pause_timer()
+
+        assert not viewmodel._timer.isActive()
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_resume_timer_starts_timer(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that resume_timer starts the timer."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        viewmodel.pause_timer()
+        assert not viewmodel._timer.isActive()
+
+        viewmodel.resume_timer()
+
+        assert viewmodel._timer.isActive()
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_pause_resume_preserves_elapsed_seconds(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that pause and resume preserve elapsed_seconds value."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        viewmodel._elapsed_seconds = 42
+
+        viewmodel.pause_timer()
+        viewmodel.resume_timer()
+
+        assert viewmodel._elapsed_seconds == 42
+
+
+class TestGameViewModelResetLevel:
+    """Test reset_level slot."""
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_creates_new_game_session(
+            self,
+            mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that reset_level creates a new GameSession instance."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        initial_call_count = mock_game_session_class.call_count
+
+        viewmodel.reset_level()
+
+        assert mock_game_session_class.call_count == initial_call_count + 1
+        mock_game_session_class.assert_called_with(
+            viewmodel._player,
+            viewmodel._level
+        )
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_resets_elapsed_seconds(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that reset_level resets elapsed_seconds to 0."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+        viewmodel._elapsed_seconds = 99
+
+        viewmodel.reset_level()
+
+        assert viewmodel._elapsed_seconds == 0
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_emits_game_reset_signal(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp,
+            qtbot
+    ):
+        """Test that reset_level emits game_reset signal."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        with qtbot.waitSignal(viewmodel.game_reset, timeout=1000):
+            viewmodel.reset_level()
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_emits_nodes_changed_signal(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp,
+            qtbot
+    ):
+        """Test that reset_level emits nodes_changed signal."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        with qtbot.waitSignal(viewmodel.nodes_changed, timeout=1000):
+            viewmodel.reset_level()
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_emits_budget_changed_signal(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp,
+            qtbot
+    ):
+        """Test that reset_level emits budget_changed signal."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        with qtbot.waitSignal(viewmodel.budget_changed, timeout=1000):
+            viewmodel.reset_level()
+
+    @patch('viewmodels.game_viewmodel.GameSession')
+    def test_reset_level_restarts_timer(
+            self,
+            _mock_game_session_class,
+            mock_db_service,
+            qapp
+    ):
+        """Test that reset_level restarts the timer."""
+        player_id = 1
+        level_id = 1
+
+        viewmodel = GameViewModel(player_id, level_id, mock_db_service)
+
+        viewmodel.pause_timer()
+        assert not viewmodel._timer.isActive()
+
+        viewmodel.reset_level()
+
+        assert viewmodel._timer.isActive()
