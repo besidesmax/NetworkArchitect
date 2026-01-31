@@ -2,7 +2,7 @@
 
 import pytest
 from models.grid_point import GridPoint
-from viewmodels.coordinate_mapper_viewmodel import CoordinateMapper, DEFAULT_CELL_SIZE, DEFAULT_OFFSET_X, \
+from viewmodels.coordinate_mapper import CoordinateMapper, DEFAULT_CELL_SIZE, DEFAULT_OFFSET_X, \
     DEFAULT_OFFSET_Y
 
 
