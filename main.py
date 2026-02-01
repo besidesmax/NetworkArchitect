@@ -5,7 +5,9 @@ from PySide6.QtCore import QTimer, QEventLoop
 
 from models.database_service import DatabaseService
 from views.splash_screen import SplashScreen
-from views.main_window import MainWindow
+
+
+# from views.main_window import MainWindow
 
 
 def main():

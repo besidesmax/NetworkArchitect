@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
+from PySide6.QtGui import QPixmap
 
 
 class SplashScreen(QWidget):
@@ -23,8 +24,16 @@ class SplashScreen(QWidget):
 
         #  Create widgets
         logo_label = QLabel()
-        logo_label.setFixedSize(100, 100)  # Reserve space for logo # TODO insert Logo
-        logo_label.setStyleSheet("background-color: #2c3e50; border-radius: 10px;")
+        logo_pixmap = QPixmap("src/resources/logo.png")
+        if logo_pixmap.isNull():
+            print("⚠️ Logo not found!")
+        logo_pixmap = logo_pixmap.scaled(
+            90, 90,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+        logo_label.setPixmap(logo_pixmap)
+        logo_label.setAlignment(Qt.AlignCenter)
 
         title_label = QLabel("Network Architect")
         title_font = QFont("Arial", 24, QFont.Weight.Bold)
