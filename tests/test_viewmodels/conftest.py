@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from PySide6.QtWidgets import QApplication
 
 from models.difficulty import Difficulty
@@ -66,5 +67,13 @@ def mock_db_service():
     mock_level.node_config.nodes = [node1, node2]
 
     mock_service.get_level.return_value = mock_level
+
+    mock_level_1 = Mock(spec=Level)
+    mock_level_1.level_id = 1
+
+    mock_level_2 = Mock(spec=Level)
+    mock_level_2.level_id = 2
+
+    mock_service.get_all_levels.return_value = [mock_level_1, mock_level_2]
 
     return mock_service

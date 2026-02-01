@@ -119,7 +119,7 @@ class TestGameViewModelPlaceBridge:
         viewmodel = GameViewModel(player_id, level_id, mock_db_service)
         viewmodel.set_selected_bridge_type("FIBER")
 
-        with qtbot.waitSignal(viewmodel.bridge_placed, timeout=1000):
+        with qtbot.waitSignal(viewmodel.bridges_changed, timeout=1000):
             viewmodel.place_bridge_vm(1, [], 2)
 
     @patch('viewmodels.game_viewmodel.GameSession')
@@ -252,7 +252,7 @@ class TestGameViewModelRemoveBridge:
         mock_bridge.bridge_id = 1
         mock_game_session.network.bridges = [mock_bridge]
 
-        with qtbot.waitSignal(viewmodel.bridge_removed, timeout=1000):
+        with qtbot.waitSignal(viewmodel.bridges_changed, timeout=1000):
             viewmodel.remove_bridge(1)
 
     @patch('viewmodels.game_viewmodel.GameSession')
