@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap
 
@@ -46,24 +46,30 @@ class SplashScreen(QWidget):
         layout.addWidget(loading_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Apply styling
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #1e1e1e;
-            }
-            QLabel {
-                color: #ffffff;
-            }
-        """)
+        self.setStyleSheet("""  QWidget {background-color: #1e1e1e;}
+                                QLabel {color: #ffffff;}""")
 
-        # Update logo placeholder style for better contrast
         logo_label.setStyleSheet("""
             background-color: #2c3e50;
             border-radius: 10px;
-            border: 2px solid #3498db;
-        """)
+            border: 2px solid #3498db;""")
 
-        # Optional: Add color to title
-        title_label.setStyleSheet("color: #3498db;")  # Blue title
+        title_label.setStyleSheet("color: #3498db;")
+
+        # Center window on screen
+        self._center_on_screen()
+
+    def _center_on_screen(self):
+        """Center the splash screen on the primary screen."""
+        screen = QApplication.primaryScreen().geometry()
+        window_geometry = self.frameGeometry()
+
+        # Calculate center position
+        center_x = (screen.width() - window_geometry.width()) // 2
+        center_y = (screen.height() - window_geometry.height()) // 2
+
+        # Move window to center
+        self.move(center_x, center_y)
 
 
 if __name__ == "__main__":
