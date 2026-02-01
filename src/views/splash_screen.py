@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
 
 
 class SplashScreen(QWidget):
@@ -79,13 +79,3 @@ class SplashScreen(QWidget):
 
         # Move window to center
         self.move(center_x, center_y)
-
-
-if __name__ == "__main__":
-    import sys
-    from PySide6.QtWidgets import QApplication
-
-    app = QApplication(sys.argv)
-    splash = SplashScreen()
-    splash.show()
-    sys.exit(app.exec())
