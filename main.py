@@ -10,43 +10,25 @@ from views.main_window import MainWindow
 
 def main():
     """Entry point for Network Architect application."""
-    # 1. Create Qt application
     app = QApplication(sys.argv)
 
-    # 2. Create and show splash screen
+    # Initialize DatabaseService
+    db_service = DatabaseService()
+
+    # Show splash screen
     splash = SplashScreen()
     splash.show()
 
-    # 3. Force Qt to render splash immediately
-    app.processEvents()
+    # Create main window (but don't show yet)
+    main_window = MainWindow(db_service)
 
-    # 4. Start measuring time
-    start_time = time.time()
+    # Close splash and show main window after delay
+    def show_main_window():
+        splash.close()
+        main_window.show()
 
-    # 5. Initialize database (splash is visible during this)
-    db = DatabaseService()
+    QTimer.singleShot(2000, show_main_window)  # 2 seconds
 
-    # 6. Calculate elapsed time
-    elapsed_ms = (time.time() - start_time) * 1000  # Convert to milliseconds
-
-    # 7. Calculate remaining time to reach minimum 3 seconds
-    minimum_duration_ms = 3000
-    remaining_ms = minimum_duration_ms - elapsed_ms
-
-    # 8. Wait if needed (keeps UI responsive)
-    if remaining_ms > 0:
-        loop = QEventLoop()
-        QTimer.singleShot(int(remaining_ms), loop.quit)
-        loop.exec()
-
-    # 9. Create and show main window
-    main_window = MainWindow()
-    main_window.show()
-
-    # 10. Close splash screen
-    splash.close()
-
-    # 11. Start Qt event loop (app runs until user closes)
     sys.exit(app.exec())
 
 
