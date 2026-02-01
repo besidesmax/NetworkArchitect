@@ -19,8 +19,7 @@ class GameViewModel(QObject):
     level_completed = Signal(int, int, str)  # redundancy_score, performance_score, time (mm:ss)
     error_occurred = Signal(str)
     bridge_type_changed = Signal()
-    bridge_placed = Signal()
-    bridge_removed = Signal()
+    bridges_changed = Signal()
 
     def __init__(self, player_id: int, level_id: int, db_service: DatabaseService):
         """
@@ -53,6 +52,13 @@ class GameViewModel(QObject):
 
         # bridge placement
         self._selected_bridge_type: BridgeType | None = None
+        self._available_bridge_types: List = []
+        for bt in BridgeType:
+            self._available_bridge_types.append({"name": bt.name,
+                                                 "bandwidth": bt.bandwidth,
+                                                 "cost": bt.cost
+                                                 }
+                                                )
 
     # === PROPERTIES ===
     @Property(list)
@@ -96,6 +102,39 @@ class GameViewModel(QObject):
             return ""
         return self._selected_bridge_type.name
 
+    @Property(list)
+    def available_bridge_types(self) -> List[Dict[str, Any]]:
+        """list of all available_bridge_types"""
+        return self._available_bridge_types
+
+    @Property(list, notify=bridges_changed)
+    def bridges(self) -> List[Dict[str, Any]]:
+        """
+        List of all bridges in the network for view rendering.
+
+        Returns:
+            List of dicts with 'bridge_id', 'from_node_id', 'to_node_id',
+            'grid_points' (list of dicts with x/y), 'bridge_type' (name).
+        """
+        bridges_model = self._game_session.network.bridges
+        bridges_view = []
+        for bridge in bridges_model:
+            grid_points = []
+            for gp in bridge.grid_points:
+                grid_points.append({"grid_point_id": gp.grid_point_id,
+                                    "grid_point_x": gp.position_x,
+                                    "grid_point_y": gp.position_y
+                                    }
+                                   )
+
+            bridges_view.append({"bridge_id": bridge.bridge_id,
+                                 "from_node_id": bridge.from_node.node_id,
+                                 "to_node_id": bridge.to_node.node_id,
+                                 "grid_points": grid_points,
+                                 "bridge_type": bridge.bridge_type.name
+                                 })
+        return bridges_view
+
     # === Slots ===
     @Slot()
     def pause_timer(self) -> None:
@@ -132,6 +171,7 @@ class GameViewModel(QObject):
         # Signals
         self.game_reset.emit()
         self.nodes_changed.emit()
+        self.bridges_changed.emit()
         self.budget_changed.emit(self._game_session.current_budget)
 
     @Slot()
@@ -243,7 +283,7 @@ class GameViewModel(QObject):
         # place Bridge
         try:
             self._game_session.place_bridge(from_node, grid_points, to_node, self._selected_bridge_type)
-            self.bridge_placed.emit()
+            self.bridges_changed.emit()
             self.budget_changed.emit(self._game_session.current_budget)
             self.nodes_changed.emit()
 
@@ -280,7 +320,7 @@ class GameViewModel(QObject):
                 break
         try:
             self._game_session.remove_bridge(bridge)
-            self.bridge_removed.emit()
+            self.bridges_changed.emit()
             self.budget_changed.emit(self._game_session.current_budget)
             self.nodes_changed.emit()
 
