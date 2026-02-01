@@ -481,7 +481,7 @@ class DatabaseService:
         result = []
         for row in rows:
             result.append({"player_id": row[0],
-                           "playername": row[1],
+                           "player_name": row[1],
                            "completed_at": row[2],
                            "elapsed_time_seconds": row[3],
                            "achieved_performance": row[4],
