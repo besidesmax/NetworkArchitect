@@ -470,7 +470,7 @@ class DatabaseService:
                             plc.elapsed_time_seconds,
                             plc.achieved_performance,
                             plc.achieved_redundancy
-                        FROM player_completed_levels plc
+                        FROM player_completed_levels pcl
                         JOIN players p ON pcl.player_id = p.id
                         WHERE pcl.level_id = ?
                         ORDER BY completed_at DESC
