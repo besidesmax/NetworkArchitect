@@ -143,7 +143,11 @@ class GameSession:
         Node.id_counter = 0
 
         test_player = Player("test_Player")
-        test_level = Level(self.level.difficulty, self.level.target_score, self.level.start_budget)
+        test_level = Level(self.level.difficulty,
+                           self.level.target_performance_score,
+                           self.level.target_redundancy_score,
+                           self.level.start_budget
+                           )
         test_session = GameSession(test_player, test_level)
 
         for game_node in self.network.nodes:

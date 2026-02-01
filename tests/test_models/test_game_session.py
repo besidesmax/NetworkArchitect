@@ -11,12 +11,12 @@ def test_place_bridge():
     """GR-03: Tests bridge placement success, budget deduction, low budget failure.
 
     Verifies:
-    - Bridge added to network.bridges
+    - Bridge added to network.bridges.
     - Budget deducted by BridgeType.ETHERNET.cost (10)
     - Low budget (5 < 10) → False, state unchanged
     """
     player1 = Player("TestPlayer")
-    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    level1 = Level(Difficulty.LIGHT, 1000, 1000, 5000)
     session = GameSession(player1, level1)
 
     # add Nodes
@@ -43,7 +43,9 @@ def test_place_bridge():
 
     # Valid if low budget hiders placement
     session.current_budget = 5
-    assert not session.place_bridge(node4, [session.level.game_board[32]], node2, BridgeType.ETHERNET)
+    import pytest
+    with pytest.raises(ValueError, match="Insufficient budget"):
+        session.place_bridge(node4, [session.level.game_board[32]], node2, BridgeType.ETHERNET)
 
 
 def test_remove_bridge():
@@ -56,7 +58,7 @@ def test_remove_bridge():
     """
     # Setup: LIGHT level with minimal nodes
     player1 = Player("TestPlayer")
-    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    level1 = Level(Difficulty.LIGHT, 1000, 1000, 5000)
     session = GameSession(player1, level1)
 
     # GR-08: Configure minimal level nodes
@@ -83,7 +85,7 @@ def test_is_it_solved_complete():
     - GR-05: BFS reaches all nodes: Server↔C1↔C6, Server↔C2, Server↔C3↔C4
     """
     player1 = Player("TestPlayer")
-    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    level1 = Level(Difficulty.LIGHT, 1000, 1000, 5000)
     session = GameSession(player1, level1)
 
     # add Nodes
@@ -121,7 +123,7 @@ def test_is_it_solved_complete():
 
 def test_calculate_redundancy_score():
     player1 = Player("TestPlayer")
-    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    level1 = Level(Difficulty.LIGHT, 1000, 1000, 5000)
     session = GameSession(player1, level1)
 
     # add Nodes
@@ -155,7 +157,7 @@ def test_calculate_redundancy_score():
 
 def test_calculate_performance():
     player1 = Player("TestPlayer")
-    level1 = Level(Difficulty.LIGHT, 1000, 5000)
+    level1 = Level(Difficulty.LIGHT, 1000, 1000, 5000)
     session = GameSession(player1, level1)
 
     # add Nodes
@@ -178,7 +180,7 @@ def test_calculate_performance():
     # add Node
     node3 = Node([session.level.game_board[43]], NodeType.CLIENT)
 
-    # adapte node_config
+    # adapt node_config
     session.level.node_config.nodes = [node0, node1, node2, node3]
 
     # add bridges
