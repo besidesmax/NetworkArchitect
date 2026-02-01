@@ -464,13 +464,15 @@ class DatabaseService:
         cursor = self.conn.cursor()
         cursor.execute("""
                         SELECT 
-                            player_id, 
-                            completed_at,
-                            elapsed_time_seconds,
-                            achieved_performance,
-                            achieved_redundancy
-                        FROM player_completed_levels
-                        WHERE level_id = ?
+                            plc.player_id,
+                            p.name, 
+                            plc.completed_at,
+                            plc.elapsed_time_seconds,
+                            plc.achieved_performance,
+                            plc.achieved_redundancy
+                        FROM player_completed_levels plc
+                        JOIN players p ON pcl.player_id = p.id
+                        WHERE pcl.level_id = ?
                         ORDER BY completed_at DESC
                     """, (level_id,))
 
@@ -479,10 +481,11 @@ class DatabaseService:
         result = []
         for row in rows:
             result.append({"player_id": row[0],
-                           "completed_at": row[1],
-                           "elapsed_time_seconds": row[2],
-                           "achieved_performance": row[3],
-                           "achieved_redundancy": row[4]
+                           "playername": row[1],
+                           "completed_at": row[2],
+                           "elapsed_time_seconds": row[3],
+                           "achieved_performance": row[4],
+                           "achieved_redundancy": row[5]
                            }
                           )
 
