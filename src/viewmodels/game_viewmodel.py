@@ -37,6 +37,12 @@ class GameViewModel(QObject):
         self._player = self._db_service.get_player_by_id(player_id)
         self._level = self._db_service.get_level(level_id)
         self._game_session = GameSession(self._player, self._level)
+        self._max_level_id = None
+        all_levels = self._db_service.get_all_levels()
+        all_levels_id = []
+        for level in all_levels:
+            all_levels_id.append(level.level_id)
+        self._max_level_id = max(all_levels_id)
 
         # provide GameBoard
         grid_points = self._level.game_board
@@ -134,6 +140,18 @@ class GameViewModel(QObject):
                                  "bridge_type": bridge.bridge_type.name
                                  })
         return bridges_view
+
+    @Property(bool)
+    def is_last_level(self) -> bool:
+        """
+        Check if current level is the last available level.
+
+        Returns:
+            True if this is the final level, False otherwise.
+        """
+        if self._max_level_id is None:
+            return False
+        return self._level.level_id == self._max_level_id
 
     # === Slots ===
     @Slot()
