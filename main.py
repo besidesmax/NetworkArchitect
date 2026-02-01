@@ -5,9 +5,7 @@ from PySide6.QtCore import QTimer, QEventLoop
 
 from models.database_service import DatabaseService
 from views.splash_screen import SplashScreen
-
-
-# from views.main_window import MainWindow
+from views.main_window import MainWindow
 
 
 def main():
@@ -42,7 +40,7 @@ def main():
         loop.exec()
 
     # 9. Create and show main window
-    main_window = MainWindow(db)
+    main_window = MainWindow()
     main_window.show()
 
     # 10. Close splash screen
