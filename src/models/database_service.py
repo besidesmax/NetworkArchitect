@@ -416,28 +416,29 @@ class DatabaseService:
             raise ValueError("player_id must be a positive integer")
 
         cursor = self.conn.cursor()
-
         cursor.execute("""
                 SELECT 
-                    level_id, 
-                    completed_at,
-                    elapsed_time_seconds,
-                    achieved_performance,
-                    achieved_redundancy
-                FROM player_completed_levels
-                WHERE player_id = ?
-                ORDER BY level_id DESC
+                    pcl.level_id,
+                    l.difficulty,
+                    pcl.completed_at,
+                    pcl.elapsed_time_seconds,
+                    pcl.achieved_performance
+                    pcl.achieved_redundancy,
+                FROM player_completed_levels pcl
+                JOIN levels l ON pcl.level_id = l.id
+                WHERE pcl.player_id = ?
+                ORDER BY pcl.level_id DESC
             """, (player_id,))
 
         rows = cursor.fetchall()
-
         player_completed_levels = []
         for row in rows:
             player_completed_levels.append({"level_id": row[0],
-                                            "completed_at": row[1],
-                                            "elapsed_time_seconds": row[2],
-                                            "achieved_performance": row[3],
-                                            "achieved_redundancy": row[4]
+                                            "difficulty": row[1],
+                                            "completed_at": row[2],
+                                            "elapsed_time_seconds": row[3],
+                                            "achieved_performance": row[4],
+                                            "achieved_redundancy": row[5]
                                             }
                                            )
 
