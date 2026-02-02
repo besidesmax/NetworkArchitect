@@ -418,18 +418,18 @@ class DatabaseService:
 
         cursor = self.conn.cursor()
         cursor.execute("""
-                SELECT 
-                    pcl.level_id,
-                    l.difficulty,
-                    pcl.completed_at,
-                    pcl.elapsed_time_seconds,
-                    pcl.achieved_performance
-                    pcl.achieved_redundancy,
-                FROM player_completed_levels pcl
-                JOIN levels l ON pcl.level_id = l.id
-                WHERE pcl.player_id = ?
-                ORDER BY pcl.level_id DESC
-            """, (player_id,))
+                        SELECT 
+                            pcl.level_id,
+                            l.difficulty,
+                            pcl.completed_at,
+                            pcl.elapsed_time_seconds,
+                            pcl.achieved_performance,
+                            pcl.achieved_redundancy
+                        FROM player_completed_levels pcl
+                        JOIN levels l ON pcl.level_id = l.id
+                        WHERE pcl.player_id = ?
+                        ORDER BY pcl.level_id DESC
+                    """, (player_id,))
 
         rows = cursor.fetchall()
         player_completed_levels = []
