@@ -2,14 +2,15 @@
 Main game view for playing Network Architect puzzles.
 """
 
+from PySide6.QtCore import Qt, Signal, Slot, QPointF, QRectF
+from PySide6.QtGui import QFont, QPen, QBrush, QColor, QPainter
 from PySide6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel,
                                QMessageBox, QGraphicsView, QGraphicsScene,
                                QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsTextItem,
                                QScrollArea)
-from PySide6.QtCore import Qt, Signal, Slot
-from PySide6.QtGui import QFont, QPen, QBrush, QColor, QPainter
 
 from viewmodels.coordinate_mapper import CoordinateMapper
+from .game_canvas import GameCanvas
 
 
 class GameView(QWidget):
@@ -59,6 +60,9 @@ class GameView(QWidget):
 
         # === PANEL CREATION ===
         self._update_budget_label(self.viewmodel.current_budget)
+        # === debug ===
+        self._print_all_node_ids()
+
 
     def _create_left_panel(self, parent_layout):
         """Create left sidebar with control buttons."""
@@ -106,7 +110,7 @@ class GameView(QWidget):
 
     def _create_center_panel(self, parent_layout):
         """Create center game canvas (QGraphicsView)."""
-        self.game_canvas = QGraphicsView(self.scene)
+        self.game_canvas = GameCanvas(self.scene)
         self.game_canvas.setMinimumSize(500, 500)
         self.game_canvas.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -176,9 +180,9 @@ class GameView(QWidget):
             x, y = self._grid_to_screen(gp_data["x"], gp_data["y"])
 
             # Draw small circle
-            circle = QGraphicsEllipseItem(x - 2, y - 2, 4, 4)
+            circle = QGraphicsEllipseItem(x - 2, y - 2, 6, 6)
             circle.setBrush(QBrush(QColor(200, 200, 200)))
-            circle.setPen(QPen(Qt.PenStyle.NoPen))
+            circle.setPen(QPen(QColor(50, 50, 50), 1))
             self.scene.addItem(circle)
 
     def _render_nodes(self):
@@ -365,7 +369,29 @@ class GameView(QWidget):
                 btn.setChecked(False)
 
         # Set selected bridge type in ViewModel
+        # Set selected bridge type in ViewModel
         self.viewmodel.set_selected_bridge_type(bridge_type_name)
+
+    @Slot(QPointF)
+    def _on_canvas_clicked(self, coordinates: QPointF):
+
+        x_coordinate = coordinates.x()
+        y_coordinate = coordinates.y()
+        radius = 5  # radius for rect
+
+        rect = QRectF(x_coordinate - radius, y_coordinate - radius, radius * 2, radius * 2)
+
+        items = self.scene.items(rect)
+        if len(items) != 0:
+            for item in items:
+                stored_data = {}
+                for key in range(256):
+                    value = item.data(key)
+                    if value is not None:
+                        stored_data[key] = value
+                print(stored_data)
+
+        print(f"x = {x_coordinate}; y = {y_coordinate}")
 
     def _connect_viewmodel_signals(self):
         """Connect all ViewModel signals to View slots."""
@@ -377,3 +403,16 @@ class GameView(QWidget):
         self.viewmodel.game_reset.connect(self._on_game_reset)
         self.viewmodel.nodes_changed.connect(self._on_nodes_changed)
         self.viewmodel.bridges_changed.connect(self._on_bridges_changed)
+        self.game_canvas.canvas_clicked.connect(self._on_canvas_clicked)
+
+    # ===== TEST ====== TEST ====
+    def _print_all_node_ids(self):
+        """
+        Debug method: Print all node_ids from ViewModel.
+        """
+        print("\n=== NODE IDs in ViewModel ===")
+        nodes = self.viewmodel.nodes
+        for node in nodes:
+            print(f"Node ID: {node['id']}, Type: {node['type']}, Pos: ({node['x']}, {node['y']})")
+
+        print(f"\nTotal Nodes: {len(nodes)}\n")

@@ -283,6 +283,7 @@ class DatabaseService:
         level.level_id = level_id
 
         # Reconstruct Node
+        Node.id_counter = 0
         data: List[Dict[str, Any]] = json.loads(node_config_json)
         for node_data in data:
             node_grid_point_id: int = node_data["grid_point_id"]
@@ -297,6 +298,7 @@ class DatabaseService:
                 raise ValueError(f"GridPoint ID {node_grid_point_id} not found")
 
             node_type_enum = NodeType[node_data["node_type"]]
+
             level.node_config.add_node(Node([node_grid_point], node_type_enum))
 
         return level
