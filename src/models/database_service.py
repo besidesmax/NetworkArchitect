@@ -8,13 +8,14 @@ from models.level import Level
 from models.node import Node
 from models.node_type import NodeType
 from models.player import Player
+from config import Config
 
 
 class DatabaseService:
     """Manages SQLite persistence for Network Architect game sessions."""
 
     def __init__(self) -> None:
-        self.db_path = os.path.join(os.path.dirname(__file__), "data", "network_architect.db")
+        self.db_path = os.path.join(Config.DATABASE_PATH)
         # Ensure data directory exists
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.conn = sqlite3.connect(self.db_path)
