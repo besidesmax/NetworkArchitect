@@ -1,5 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow, QStackedWidget
+from PySide6.QtGui import QIcon
 from .statistics_view import StatisticsView
 
 
@@ -18,6 +19,8 @@ class MainWindow(QMainWindow):
         self.db_service = db_service
         self.setWindowTitle("Network Architect")
         self.setMinimumSize(800, 600)
+        icon = QIcon("src/resources/logo.png")
+        self.setWindowIcon(icon)
 
         # Stacked Widget for changing view
         self.stack = QStackedWidget()
