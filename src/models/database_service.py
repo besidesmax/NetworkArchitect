@@ -465,12 +465,12 @@ class DatabaseService:
         cursor = self.conn.cursor()
         cursor.execute("""
                         SELECT 
-                            plc.player_id,
+                            pcl.player_id,
                             p.name, 
-                            plc.completed_at,
-                            plc.elapsed_time_seconds,
-                            plc.achieved_performance,
-                            plc.achieved_redundancy
+                            pcl.completed_at,
+                            pcl.elapsed_time_seconds,
+                            pcl.achieved_performance,
+                            pcl.achieved_redundancy
                         FROM player_completed_levels pcl
                         JOIN players p ON pcl.player_id = p.id
                         WHERE pcl.level_id = ?
