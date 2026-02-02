@@ -2,6 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
+from config import Config
 
 
 class SplashScreen(QWidget):
@@ -24,7 +25,7 @@ class SplashScreen(QWidget):
 
         #  Create widgets
         logo_label = QLabel()
-        logo_pixmap = QPixmap("src/resources/logo.png")
+        logo_pixmap = QPixmap(str(Config.ICON_PATH))
         if logo_pixmap.isNull():
             print("⚠️ Logo not found!")
         logo_pixmap = logo_pixmap.scaled(
