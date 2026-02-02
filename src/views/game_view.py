@@ -110,9 +110,6 @@ class GameView(QWidget):
         self.game_canvas.setMinimumSize(500, 500)
         self.game_canvas.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Enable scrolling
-        self.game_canvas.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-
         parent_layout.addWidget(self.game_canvas, 3)
 
     def _create_right_panel(self, parent_layout):
@@ -197,13 +194,11 @@ class GameView(QWidget):
             node_id = node["id"]
 
             # Node colors by type
-            color_map = {
-                "SERVER": QColor(100, 150, 255),  # Blue
-                "CLIENT": QColor(100, 255, 150),  # Green
-                "ROUTER": QColor(255, 200, 100),  # Orange
-                "FIREWALL": QColor(255, 100, 100),  # Red
-                "SWITCH": QColor(200, 100, 255)  # Purple
-            }
+            color_map = {"SERVER": QColor(100, 150, 255),  # Blue
+                         "CLIENT": QColor(100, 255, 150),  # Green
+                         "ROUTER": QColor(255, 200, 100),  # Orange
+                         "FIREWALL": QColor(255, 100, 100),  # Red
+                         }
 
             color = color_map.get(node_type, QColor(128, 128, 128))
 
@@ -215,13 +210,11 @@ class GameView(QWidget):
             self.scene.addItem(node_circle)
 
             # Draw node label (type abbreviation)
-            label_map = {
-                "SERVER": "S",
-                "CLIENT": "C",
-                "ROUTER": "R",
-                "FIREWALL": "F",
-                "SWITCH": "SW"
-            }
+            label_map = {"SERVER": "S",
+                         "CLIENT": "C",
+                         "ROUTER": "R",
+                         "FIREWALL": "F",
+                         }
             label_text = label_map.get(node_type, "?")
 
             label = QGraphicsTextItem(label_text)
@@ -240,11 +233,10 @@ class GameView(QWidget):
             self.scene.addItem(conn_label)
 
             # Store references for updates
-            self.node_graphics[node_id] = {
-                "circle": node_circle,
-                "label": label,
-                "conn_label": conn_label
-            }
+            self.node_graphics[node_id] = {"circle": node_circle,
+                                           "label": label,
+                                           "conn_label": conn_label
+                                           }
 
     def _render_bridges(self):
         """Render all bridges as colored lines."""
@@ -295,51 +287,6 @@ class GameView(QWidget):
                 bridge_items.append(line)
 
             self.bridge_graphics[bridge_id] = bridge_items
-
-    def eventFilter(self, obj, event):
-        """Filter events on game canvas viewport."""
-        from PySide6.QtCore import QEvent
-        from PySide6.QtGui import QMouseEvent
-
-        # Check if it's a mouse press event on viewport
-        if obj == self.game_canvas.viewport() and event.type() == QEvent.Type.MouseButtonPress:
-            # Type check and cast to QMouseEvent
-            if not isinstance(event, QMouseEvent):
-                return super().eventFilter(obj, event)
-
-            # Now PyCharm knows it's a QMouseEvent
-            mouse_event: QMouseEvent = event
-
-            # Get scene position
-            scene_pos = self.game_canvas.mapToScene(mouse_event.pos())
-
-            # Handle right click
-            if mouse_event.button() == Qt.MouseButton.RightButton:
-                if self.placement_active:
-                    print("Bridge placement cancelled")
-                    self._reset_placement_state()
-                else:
-                    clicked_bridge_id = self._find_bridge_at_position(scene_pos.x(), scene_pos.y())
-                    if clicked_bridge_id is not None:
-                        self.viewmodel.remove_bridge(clicked_bridge_id)
-                return True  # Event handled
-
-            # Handle left click
-            if mouse_event.button() == Qt.MouseButton.LeftButton:
-                grid_x, grid_y = self.coord_mapper.screen_to_model(int(scene_pos.x()), int(scene_pos.y()))
-
-                clicked_node_id = self._find_node_at_position(grid_x, grid_y)
-                clicked_grid_point_id = self._find_grid_point_at_position(grid_x, grid_y)
-
-                if clicked_node_id is not None:
-                    self._handle_node_click(clicked_node_id)
-                elif clicked_grid_point_id is not None:
-                    self._handle_grid_point_click(clicked_grid_point_id)
-
-                return True  # Event handled
-
-        # Pass event to parent
-        return super().eventFilter(obj, event)
 
     # === SLOTS ===
     @Slot(str)
@@ -403,7 +350,6 @@ class GameView(QWidget):
     @Slot(int, int, str)
     def _on_level_completed(self, redundancy, performance, time):
         """Show level completion dialog."""
-        # TODO: Custom Dialog with options (Weiter, Wiederholen, etc.)
         QMessageBox.information(
             self,
             "Level geschafft!",
@@ -431,117 +377,3 @@ class GameView(QWidget):
         self.viewmodel.game_reset.connect(self._on_game_reset)
         self.viewmodel.nodes_changed.connect(self._on_nodes_changed)
         self.viewmodel.bridges_changed.connect(self._on_bridges_changed)
-
-    # === CLICK HANDLING HELPERS ===
-    def _find_node_at_position(self, grid_x, grid_y):
-        """
-        Find node at grid position.
-
-        Args:
-            grid_x: Grid X coordinate
-            grid_y: Grid Y coordinate
-
-        Returns:
-            node_id if found, None otherwise
-        """
-        nodes = self.viewmodel.nodes
-        for node in nodes:
-            if node["x"] == grid_x and node["y"] == grid_y:
-                return node["id"]
-        return None
-
-    def _find_grid_point_at_position(self, grid_x, grid_y):
-        """
-        Find grid point at position.
-
-        Args:
-            grid_x: Grid X coordinate
-            grid_y: Grid Y coordinate
-
-        Returns:
-            grid_point_id if found, None otherwise
-        """
-        grid_points = self.viewmodel.game_board
-        for gp in grid_points:
-            if gp["x"] == grid_x and gp["y"] == grid_y:
-                return gp["id"]
-        return None
-
-    def _find_bridge_at_position(self, scene_x, scene_y):
-        """
-        Find bridge at screen position.
-
-        Args:
-            scene_x: X coordinate in scene
-            scene_y: Y coordinate in scene
-
-        Returns:
-            bridge_id if found, None otherwise
-        """
-        from PySide6.QtCore import QPointF  # ← Import hinzufügen (oder oben!)
-
-        # Create QPointF from coordinates
-        pos = QPointF(scene_x, scene_y)
-
-        # Get items at position
-        items = self.scene.items(pos)  # ← QPointF statt (x, y)
-
-        for item in items:
-            # Check if item has bridge_id data
-            bridge_id = item.data(0)
-            if bridge_id is not None and isinstance(bridge_id, int):
-                # Verify it's actually a bridge (not a node)
-                if bridge_id in self.bridge_graphics:
-                    return bridge_id
-
-        return None
-
-    def _handle_node_click(self, node_id):
-        """Handle click on a node."""
-        if not self.placement_active:
-            # Start bridge placement
-            self.placement_active = True
-            self.placement_from_node_id = node_id
-            self.placement_grid_points = []
-
-            self._unhighlight_all_nodes()
-            self._highlight_node(node_id)
-
-            print(f"Bridge placement started from node {node_id}")
-        else:
-            # End bridge placement
-            to_node_id = node_id
-
-            self.viewmodel.place_bridge_vm(
-                self.placement_from_node_id,
-                self.placement_grid_points,
-                to_node_id
-            )
-
-            self._reset_placement_state()
-
-    def _handle_grid_point_click(self, grid_point_id):
-        """Handle click on a grid point."""
-        if self.placement_active:
-            # Add grid point to path
-            self.placement_grid_points.append(grid_point_id)
-            print(f"Added grid point {grid_point_id} to path")
-
-    def _reset_placement_state(self):
-        """Reset bridge placement state."""
-        self.placement_active = False
-        self.placement_from_node_id = None
-        self.placement_grid_points = []
-        self._unhighlight_all_nodes()
-
-    def _highlight_node(self, node_id):
-        """Highlight a node during placement."""
-        if node_id in self.node_graphics:
-            circle = self.node_graphics[node_id]["circle"]
-            circle.setPen(QPen(QColor(255, 255, 0), 4))  # Yellow border
-
-    def _unhighlight_all_nodes(self):
-        """Remove highlights from all nodes."""
-        for node_id, graphics in self.node_graphics.items():
-            circle = graphics["circle"]
-            circle.setPen(QPen(Qt.GlobalColor.black, 2))  # Reset to black
