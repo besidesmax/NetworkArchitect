@@ -154,6 +154,23 @@ class GameView(QWidget):
         # Create bridge place button
         place_btn = QPushButton("Brücke platzieren")
         place_btn.setMinimumHeight(60)
+        place_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                border: 3px solid #28a745;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #218838;
+                border-color: #218838;
+            }
+            QPushButton:checked {
+                background-color: #1e7e34;
+                border: 3px solid yellow;
+            }
+        """)
         place_btn.setCheckable(True)
         place_btn.clicked.connect(self._on_bridge_place_clicked)
         self.bridge_place_btn = place_btn
@@ -161,8 +178,24 @@ class GameView(QWidget):
         # Create bridge delete button
         delete_btn = QPushButton("Brücke löschen")
         delete_btn.setMinimumHeight(60)
+        delete_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #dc3545;
+                color: white;
+                border: 3px solid #dc3545;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #c82333;
+                border-color: #c82333;
+            }
+            QPushButton:checked {
+                background-color: #bd2130;
+                border: 3px solid yellow;
+            }
+        """)
         delete_btn.setCheckable(True)
-        # delete_btn.clicked.connect(self._on_bridge_delete_clicked)
         self.bridge_delete_btn = delete_btn
 
         # add Widget zo right panel
@@ -489,13 +522,22 @@ class GameView(QWidget):
 
     @Slot(QPointF)
     def _on_canvas_clicked_left(self, coordinates: QPointF):
+        """Route left-click to appropriate handler based on current mode."""
+        if self.bridge_delete_btn.isChecked():
+            self._on_canvas_clicked_left_delete_mode(coordinates)
+
+        else:
+            self._on_canvas_clicked_left_add_mode(coordinates)
+
+    @Slot(QPointF)
+    def _on_canvas_clicked_left_add_mode(self, coordinates: QPointF):
         if self.viewmodel.selected_bridge_type == "":
             QMessageBox.warning(self, "Fehler", "BridgeType muss selected sein")
 
         else:
             x_coordinate = coordinates.x()
             y_coordinate = coordinates.y()
-            radius = 5  # radius for rect
+            radius = 8  # radius for rect
 
             rect = QRectF(x_coordinate - radius, y_coordinate - radius, radius * 2, radius * 2)
 
@@ -581,6 +623,26 @@ class GameView(QWidget):
                                 text = self.are_points_adjacent(point1, point2)[1]
                                 QMessageBox.warning(self, "Fehler", text)
                                 break
+
+    @Slot(QPointF)
+    def _on_canvas_clicked_left_delete_mode(self, coordinates: QPointF):
+        x_coordinate = coordinates.x()
+        y_coordinate = coordinates.y()
+        radius = 8  # radius for rect
+
+        rect = QRectF(x_coordinate - radius, y_coordinate - radius, radius * 2, radius * 2)
+
+        items = self.scene.items(rect)
+        bridges_id = []
+        for item in items:
+            if item.data(1) == "bridge":
+                bridges_id.append(item.data(0))
+
+        for bridge_id in bridges_id:
+            print(f" allBridges = {self.viewmodel.bridges}")
+            print(f" remove ID= {bridge_id}")
+            self.viewmodel.remove_bridge(bridge_id)
+            self._render_bridges()
 
     @Slot()
     def _on_canvas_clicked_right(self):
