@@ -52,9 +52,6 @@ class Network:
         Returns:
             Bridge: The created bridge instance.
         """
-        # tests grid_points isn't empty
-        if len(grid_points) == 0:
-            raise ValueError("Grid points list cannot be empty")
 
         # check that from_node and to_node are Node instances
         if not isinstance(from_node, Node):
@@ -62,14 +59,15 @@ class Network:
         if not isinstance(to_node, Node):
             raise ValueError("to_node isn't Class Node")
 
-        # tests if any GridPoint is already used
-        Validator.is_grid_point_used(grid_points)
-        # test if the 1. grid_point is next to from_node
-        Validator.is_first_grid_point_adjacent(from_node, grid_points)
-        # test if the last grid_point is next to from_node
-        Validator.is_last_grid_point_adjacent(to_node, grid_points)
-        # test if all grid_point are adjacent to each other
-        Validator.are_grid_points_adjacent(grid_points)
+        if not grid_points == []:
+            # tests if any GridPoint is already used
+            Validator.is_grid_point_used(grid_points)
+            # test if the 1. grid_point is next to from_node
+            Validator.is_first_grid_point_adjacent(from_node, grid_points)
+            # test if the last grid_point is next to from_node
+            Validator.is_last_grid_point_adjacent(to_node, grid_points)
+            # test if all grid_point are adjacent to each other
+            Validator.are_grid_points_adjacent(grid_points)
 
         # add from_node to network
         self.add_node(from_node)
@@ -83,9 +81,10 @@ class Network:
         # create bridge
         bridge = Bridge(from_node, grid_points, to_node, bridge_type)
         # set all grid_point.used = True
-        for i in range(len(grid_points)):
-            grid_point1 = grid_points[i]
-            grid_point1.used = True
+        if not grid_points == []:
+            for i in range(len(grid_points)):
+                grid_point1 = grid_points[i]
+                grid_point1.used = True
 
         self.bridges.append(bridge)
 
