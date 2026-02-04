@@ -1,7 +1,8 @@
 import pytest
+
+from models.grid_point import GridPoint
 from models.node import Node
 from models.node_type import NodeType
-from models.grid_point import GridPoint
 
 
 @pytest.mark.parametrize("node_type", NodeType)

@@ -1,5 +1,5 @@
-from models.level import Level
 from models.difficulty import Difficulty
+from models.level import Level
 
 
 def test_create_level() -> None:

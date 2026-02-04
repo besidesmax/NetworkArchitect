@@ -1,10 +1,11 @@
 import pytest
+
+from models.bridge import Bridge
 from models.bridge_type import BridgeType
 from models.grid_point import GridPoint
 from models.network import Network
 from models.node import Node
 from models.node_type import NodeType
-from models.bridge import Bridge
 
 
 def create_board(x: int, y: int) -> list:
