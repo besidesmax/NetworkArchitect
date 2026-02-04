@@ -1,10 +1,11 @@
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QMouseEvent, Qt
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 
 
 class GameCanvas(QGraphicsView):
-    canvas_clicked = Signal(object)
+    canvas_clicked_left = Signal(object)
+    canvas_clicked_right = Signal()
 
     def __init__(self, scene: QGraphicsScene):
         """
@@ -23,5 +24,11 @@ class GameCanvas(QGraphicsView):
             event: Mouse event containing click information
         """
         scene_pos = self.mapToScene(event.pos())
-        self.canvas_clicked.emit(scene_pos)
+
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.canvas_clicked_left.emit(scene_pos)
+
+        elif event.button() == Qt.MouseButton.LeftButton:
+            self.canvas_clicked_right.emit(scene_pos)
+
         super().mousePressEvent(event)
