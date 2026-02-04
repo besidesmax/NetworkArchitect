@@ -66,9 +66,6 @@ class GameView(QWidget):
         self._selected_to_node_item: QGraphicsItem | None = None
         self._selected_grid_points_item: list[QGraphicsItem] = []
 
-        # === debug ===
-        # self._print_all_node_ids()
-
     def _create_left_panel(self, parent_layout):
         """Create left sidebar with control buttons."""
         left_panel = QVBoxLayout()
@@ -288,8 +285,17 @@ class GameView(QWidget):
 
         for bridge in bridges:
             bridge_id = bridge["bridge_id"]
+            bridge_from_node_x = bridge["from_node_x"]
+            bridge_from_node_y = bridge["from_node_y"]
+            bridge_to_node_x = bridge["to_node_x"]
+            bridge_to_node_y = bridge["to_node_y"]
             bridge_type = bridge["bridge_type"]
             grid_points = bridge["grid_points"]
+            first_grid_point = {}
+            last_grid_point = {}
+            if len(grid_points) > 0:
+                first_grid_point = grid_points[0]
+                last_grid_point = grid_points[len(grid_points) - 1]
 
             # Bridge colors and styles by type
             style_map = {
@@ -304,8 +310,40 @@ class GameView(QWidget):
             if bridge_type == "WLAN":
                 pen.setStyle(Qt.PenStyle.DashLine)
 
-            # Draw lines between grid points
             bridge_items = []
+
+            # draw first and last line
+            from_node_x, from_node_y = self._grid_to_screen(bridge_from_node_x, bridge_from_node_y)
+            to_node_x, to_node_y = self._grid_to_screen(bridge_to_node_x, bridge_to_node_y)
+
+            if len(grid_points) == 0:
+                line = QGraphicsLineItem(from_node_x, from_node_y, to_node_x, to_node_y)
+                line.setPen(pen)
+                line.setData(0, bridge_id)
+                line.setData(1, "bridge")
+                self.scene.addItem(line)
+                bridge_items.append(line)
+
+            else:
+                first_grid_point_x, first_grid_point_y = self._grid_to_screen(first_grid_point["grid_point_x"],
+                                                                              first_grid_point["grid_point_y"])
+                last_grid_point_x, last_grid_point_y = self._grid_to_screen(last_grid_point["grid_point_x"],
+                                                                            last_grid_point["grid_point_y"])
+
+                line1 = QGraphicsLineItem(from_node_x, from_node_y, first_grid_point_x, first_grid_point_y)
+                line1.setPen(pen)
+                line1.setData(0, bridge_id)  # Store bridge_id for removal
+                line1.setData(1, "bridge")  # Store Type
+                self.scene.addItem(line1)
+                bridge_items.append(line1)
+                line2 = QGraphicsLineItem(last_grid_point_x, last_grid_point_y, to_node_x, to_node_y)
+                line2.setPen(pen)
+                line2.setData(0, bridge_id)  # Store bridge_id for removal
+                line2.setData(1, "bridge")  # Store Type
+                self.scene.addItem(line2)
+                bridge_items.append(line2)
+
+            # Draw lines between grid points
             for i in range(len(grid_points) - 1):
                 x1, y1 = self._grid_to_screen(
                     grid_points[i]["grid_point_x"],
@@ -319,7 +357,7 @@ class GameView(QWidget):
                 line = QGraphicsLineItem(x1, y1, x2, y2)
                 line.setPen(pen)
                 line.setData(0, bridge_id)  # Store bridge_id for removal
-                line.setData(1, "bridge")
+                line.setData(1, "bridge")  # Store Type
                 self.scene.addItem(line)
                 bridge_items.append(line)
 
@@ -407,29 +445,44 @@ class GameView(QWidget):
     @Slot()
     def _on_bridge_place_clicked(self):
         from_node = self._selected_from_node_item
+        from_node_id = self._selected_from_node_item.data(0)
         to_node = self._selected_to_node_item
+        to_node_id = self._selected_to_node_item.data(0)
         grid_points = self._selected_grid_points_item
+        grid_points_ids = []
+        for gp in grid_points:
+            grid_points_ids.append(gp.data(0))
         if from_node is None or to_node is None:
-            print("from or to node not selected")
+            QMessageBox.warning(self, "Fehler", "es müssen zumindest 2 Nodes ausgewählt werden")
             self.bridge_place_btn.setChecked(False)
             return
 
         if grid_points:
-            print(f"From Node ID = {from_node.data(0)}")
-            print(f"To Node ID = {to_node.data(0)}")
-            for gp in grid_points:
-                print(f"Gridpoint_ID = {gp.data(0)} selected")
+            try:
+                self.viewmodel.place_bridge_vm(from_node_id, grid_points_ids, to_node_id)
+                self._render_bridges()
+            except ValueError as e:
+                raise
             self.bridge_place_btn.setChecked(False)
+
+            self.reset_selected_items(from_node, grid_points, to_node)
             return
 
         if not grid_points:
-            print(f"From Node ID = {from_node.data(0)}")
-            print(f"To Node ID = {to_node.data(0)}")
+            try:
+                self.viewmodel.place_bridge_vm(from_node_id, grid_points_ids, to_node_id)
+                self._render_bridges()
+            except ValueError as e:
+                raise
+
             self.bridge_place_btn.setChecked(False)
+
+            self.reset_selected_items(from_node, grid_points, to_node)
+
             return
 
     @Slot(QPointF)
-    def _on_canvas_clicked(self, coordinates: QPointF):
+    def _on_canvas_clicked_left(self, coordinates: QPointF):
         if self.viewmodel.selected_bridge_type == "":
             QMessageBox.warning(self, "Fehler", "BridgeType muss selected sein")
 
@@ -523,6 +576,19 @@ class GameView(QWidget):
                                 QMessageBox.warning(self, "Fehler", text)
                                 break
 
+    @Slot()
+    def _on_canvas_clicked_right(self):
+        """
+        Handle right-click on canvas to reset all selected items.
+
+        Resets all node and grid point selections and removes their visual highlights.
+        Called when user right-clicks anywhere on the game canvas.
+        """
+        from_node = self._selected_from_node_item
+        to_node = self._selected_to_node_item
+        grid_points = self._selected_grid_points_item
+        self.reset_selected_items(from_node, grid_points, to_node)
+
     # === Methods ===
     def _connect_viewmodel_signals(self):
         """Connect all ViewModel signals to View slots."""
@@ -534,7 +600,8 @@ class GameView(QWidget):
         self.viewmodel.game_reset.connect(self._on_game_reset)
         self.viewmodel.nodes_changed.connect(self._on_nodes_changed)
         self.viewmodel.bridges_changed.connect(self._on_bridges_changed)
-        self.game_canvas.canvas_clicked.connect(self._on_canvas_clicked)
+        self.game_canvas.canvas_clicked_left.connect(self._on_canvas_clicked_left)
+        self.game_canvas.canvas_clicked_right.connect(self._on_canvas_clicked_right)
 
     @staticmethod
     def are_points_adjacent(point_1: QGraphicsItem, point_2: QGraphicsItem) -> tuple[bool, str]:
@@ -583,10 +650,20 @@ class GameView(QWidget):
 
         return True, ""
 
-# ===== TEST ====== TEST ====
-#     def _print_all_node_ids(self):
-#         """
-#         Debug method: Print all node_ids from ViewModel.
-#         """
-#         print(self.node_graphics)
-#
+    def reset_selected_items(self, from_node, grid_points, to_node):
+        # reset from_node
+        if from_node is not None:
+            circle = self.node_graphics[from_node.data(0)]["circle"]
+            circle.setPen(QPen(Qt.GlobalColor.black, 2))
+            self._selected_from_node_item = None
+        # reset to_node
+        if to_node is not None:
+            circle = self.node_graphics[to_node.data(0)]["circle"]
+            circle.setPen(QPen(Qt.GlobalColor.black, 2))
+            self._selected_to_node_item = None
+        # reset  grid_points
+        if grid_points:
+            for gp in grid_points:
+                circle = self.grid_points_graphics[gp.data(0)]["circle"]
+                circle.setPen(QPen(QColor(50, 50, 50), 1))
+            self._selected_grid_points_item = []
