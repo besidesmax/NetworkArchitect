@@ -158,10 +158,18 @@ class GameView(QWidget):
         place_btn.clicked.connect(self._on_bridge_place_clicked)
         self.bridge_place_btn = place_btn
 
+        # Create bridge delete button
+        delete_btn = QPushButton("Brücke löschen")
+        delete_btn.setMinimumHeight(60)
+        delete_btn.setCheckable(True)
+        # delete_btn.clicked.connect(self._on_bridge_delete_clicked)
+        self.bridge_delete_btn = delete_btn
+
         # add Widget zo right panel
         bridge_layout.addStretch()
         scroll_area.setWidget(scroll_content)
         right_panel.addWidget(scroll_area)
+        right_panel.addWidget(delete_btn)
         right_panel.addWidget(place_btn)
 
         parent_layout.addLayout(right_panel, 1)
@@ -444,42 +452,40 @@ class GameView(QWidget):
 
     @Slot()
     def _on_bridge_place_clicked(self):
+        """
+        Handle bridge placement button click.
+
+        Validates that both from_node and to_node are selected, extracts their IDs
+        along with any intermediate grid points, then calls the ViewModel to place
+        the bridge. Resets all selections and button state after successful placement.
+
+        Shows error dialog if validation fails (missing nodes). Re-raises ValueError
+        from ViewModel on placement failures.
+        """
         from_node = self._selected_from_node_item
-        from_node_id = self._selected_from_node_item.data(0)
         to_node = self._selected_to_node_item
-        to_node_id = self._selected_to_node_item.data(0)
         grid_points = self._selected_grid_points_item
-        grid_points_ids = []
-        for gp in grid_points:
-            grid_points_ids.append(gp.data(0))
+
         if from_node is None or to_node is None:
             QMessageBox.warning(self, "Fehler", "es müssen zumindest 2 Nodes ausgewählt werden")
             self.bridge_place_btn.setChecked(False)
             return
 
-        if grid_points:
-            try:
-                self.viewmodel.place_bridge_vm(from_node_id, grid_points_ids, to_node_id)
-                self._render_bridges()
-            except ValueError as e:
-                raise
+        from_node_id = self._selected_from_node_item.data(0)
+        to_node_id = self._selected_to_node_item.data(0)
+        grid_points_ids = []
+        for gp in grid_points:
+            grid_points_ids.append(gp.data(0))
+
+        try:
+            self.viewmodel.place_bridge_vm(from_node_id, grid_points_ids, to_node_id)
+            self._render_bridges()
+        except ValueError as e:
+            raise
+        finally:
             self.bridge_place_btn.setChecked(False)
 
             self.reset_selected_items(from_node, grid_points, to_node)
-            return
-
-        if not grid_points:
-            try:
-                self.viewmodel.place_bridge_vm(from_node_id, grid_points_ids, to_node_id)
-                self._render_bridges()
-            except ValueError as e:
-                raise
-
-            self.bridge_place_btn.setChecked(False)
-
-            self.reset_selected_items(from_node, grid_points, to_node)
-
-            return
 
     @Slot(QPointF)
     def _on_canvas_clicked_left(self, coordinates: QPointF):
