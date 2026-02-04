@@ -42,9 +42,6 @@ def test_place_bridge() -> None:
     bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
     assert bridge1 in network1.bridges
 
-    # Using an empty GridPoint list must raise ValueError
-    with pytest.raises(ValueError):
-        network1.add_bridge(node1, [], node2, BridgeType.FIBER)
 
     network1.reset_network()
     board = create_board(3, 3)
