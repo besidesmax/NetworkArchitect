@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-
 from PySide6.QtWidgets import QApplication
 
 from models.difficulty import Difficulty
