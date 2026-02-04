@@ -28,7 +28,7 @@ class GameCanvas(QGraphicsView):
         if event.button() == Qt.MouseButton.LeftButton:
             self.canvas_clicked_left.emit(scene_pos)
 
-        elif event.button() == Qt.MouseButton.LeftButton:
-            self.canvas_clicked_right.emit(scene_pos)
+        if event.button() == Qt.MouseButton.RightButton:
+            self.canvas_clicked_right.emit()
 
         super().mousePressEvent(event)
