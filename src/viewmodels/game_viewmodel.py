@@ -135,7 +135,11 @@ class GameViewModel(QObject):
 
             bridges_view.append({"bridge_id": bridge.bridge_id,
                                  "from_node_id": bridge.from_node.node_id,
+                                 "from_node_x": bridge.from_node.grid_point[0].position_x,
+                                 "from_node_y": bridge.from_node.grid_point[0].position_y,
                                  "to_node_id": bridge.to_node.node_id,
+                                 "to_node_x": bridge.to_node.grid_point[0].position_x,
+                                 "to_node_y": bridge.to_node.grid_point[0].position_y,
                                  "grid_points": grid_points,
                                  "bridge_type": bridge.bridge_type.name
                                  })
