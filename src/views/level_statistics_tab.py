@@ -70,9 +70,12 @@ class LevelStatisticsTab(QWidget):
         stats = self.viewmodel.level_statistics
         self.results_table.setRowCount(len(stats))
 
+        print(stats)
         for row, stat in enumerate(stats):
             self.results_table.setItem(row, 0, QTableWidgetItem(stat["player_name"]))
-            self.results_table.setItem(row, 1, QTableWidgetItem(stat["elapsed_time_seconds"]))
+            self.results_table.setItem(row, 1, QTableWidgetItem(str(stat["elapsed_time_seconds"])))
             self.results_table.setItem(row, 2, QTableWidgetItem(str(stat["achieved_performance"])))
             self.results_table.setItem(row, 3, QTableWidgetItem(str(stat["achieved_redundancy"])))
-            self.results_table.setItem(row, 2, QTableWidgetItem(stat["completed_at"]))
+            self.results_table.setItem(row, 4, QTableWidgetItem(stat["completed_at"]))
+
+        self.results_table.resizeColumnsToContents()
