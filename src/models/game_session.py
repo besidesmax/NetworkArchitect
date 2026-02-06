@@ -139,8 +139,11 @@ class GameSession:
         return True
 
     def create_copy(self):
-        Bridge.id_counter = 0
-        Node.id_counter = 0
+        old_bridge_id_counter = Bridge.id_counter
+        old_node_id_counter = Node.id_counter
+
+        Bridge.id_counter = 9000
+        Node.id_counter = 9000
 
         test_player = Player("test_Player")
         test_level = Level(self.level.difficulty,
@@ -172,6 +175,7 @@ class GameSession:
             for test_from_node in test_session.network.nodes:
                 if test_from_node.grid_point[0].grid_point_id == game_from_node.grid_point[0].grid_point_id:
                     right_from_node = test_from_node
+                    break
 
             # gets the grid_points: list in the test_frame that equals bridge.grid_points
             right_grid_points = []
@@ -184,9 +188,13 @@ class GameSession:
             for test_to_node in test_session.network.nodes:
                 if test_to_node.grid_point[0].grid_point_id == game_to_node.grid_point[0].grid_point_id:
                     right_to_node = test_to_node
+                    break
 
             # adds bridge to test_framework
             test_session.place_bridge(right_from_node, right_grid_points, right_to_node, right_bridge_type)
+
+        Bridge.id_counter = old_bridge_id_counter
+        Node.id_counter = old_node_id_counter
 
         return test_session
 
