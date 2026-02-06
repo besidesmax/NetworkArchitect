@@ -284,4 +284,6 @@ class GameSession:
         num_node = len(self.network.nodes) - 1
         performance_score = total_bandwidth / num_node
 
+        self.network.performance_score = performance_score
+
         return performance_score
