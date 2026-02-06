@@ -466,11 +466,25 @@ class GameView(QWidget):
     @Slot(int, int, str)
     def _on_level_completed(self, redundancy, performance, time):
         """Show level completion dialog."""
-        QMessageBox.information(
-            self,
-            "Level geschafft!",
-            f"Zeit: {time}\nPerformance: {performance}\nRedundanz: {redundancy}"
-        )
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setWindowTitle("Level geschafft!")
+        msg.setText(f"Performance: {performance}\nRedundanz: {redundancy}\nZeit: {time}s")
+
+        # Add Custom Buttons
+        next_level_btn = msg.addButton("Nächstes Level", QMessageBox.ButtonRole.AcceptRole)
+        continue_btn = msg.addButton("Weiter spielen", QMessageBox.ButtonRole.RejectRole)
+        menu_btn = msg.addButton("Hauptmenü", QMessageBox.ButtonRole.DestructiveRole)
+
+        msg.exec()
+
+        if msg.clickedButton() == next_level_btn:
+            self.viewmodel.load_next_level()
+        elif msg.clickedButton() == continue_btn:
+            self.viewmodel.resume_timer()
+            msg.close()
+        elif msg.clickedButton() == menu_btn:
+            self.navigate_to_main_menu.emit()
 
     @Slot(str)
     def _on_bridge_type_selected(self, bridge_type_name):
