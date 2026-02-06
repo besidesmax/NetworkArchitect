@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
 
         game_view.navigate_to_main_menu.connect(self.show_main_menu)
         game_view.navigate_to_level_selection.connect(self.show_level_selection_view)
+        game_view.start_game_clicked.connect(self.show_game_view)
 
         if self.game_view is not None:
             self.stack.removeWidget(self.game_view)

@@ -19,6 +19,7 @@ class GameView(QWidget):
     # Signals for navigation
     navigate_to_main_menu = Signal()
     navigate_to_level_selection = Signal()
+    start_game_clicked = Signal(int, int)  # player_id, level_id
 
     def __init__(self, viewmodel):
         """
@@ -465,26 +466,58 @@ class GameView(QWidget):
 
     @Slot(int, int, str)
     def _on_level_completed(self, redundancy, performance, time):
-        """Show level completion dialog."""
+        """Show level completion dialog with stats and navigation options.
+
+        Shows congratulations for last level or next level options for normal levels.
+        Handles Next Level, Continue Playing, and Main Menu button clicks.
+
+        Args:
+            redundancy: Achieved redundancy score
+            performance: Achieved performance score
+            time: Elapsed time formatted as "mm:ss
+        """
         msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setWindowTitle("Level geschafft!")
-        msg.setText(f"Performance: {performance}\nRedundanz: {redundancy}\nZeit: {time}s")
 
-        # Add Custom Buttons
-        next_level_btn = msg.addButton("Nächstes Level", QMessageBox.ButtonRole.AcceptRole)
-        continue_btn = msg.addButton("Weiter spielen", QMessageBox.ButtonRole.RejectRole)
-        menu_btn = msg.addButton("Hauptmenü", QMessageBox.ButtonRole.DestructiveRole)
+        if self.viewmodel.is_last_level:
+            # last level only main menu button
+            msg.setText(
+                f"Glückwunsch!\n"
+                f"Du hast alle verfügbaren Level abgeschlossen!\n\n"
+                f"Performance: {performance}\n"
+                f"Redundanz: {redundancy}\n"
+                f"Zeit: {time}"
+            )
+            menu_btn = msg.addButton("Hauptmenü", QMessageBox.ButtonRole.AcceptRole)
+            msg.exec()
 
-        msg.exec()
-
-        if msg.clickedButton() == next_level_btn:
-            self.viewmodel.load_next_level()
-        elif msg.clickedButton() == continue_btn:
-            self.viewmodel.resume_timer()
-            msg.close()
-        elif msg.clickedButton() == menu_btn:
+            # last level only main menu button
             self.navigate_to_main_menu.emit()
+
+        else:
+            # normal Level - three buttons
+            msg.setText(
+                f"Performance: {performance}\n"
+                f"Redundanz: {redundancy}\n"
+                f"Zeit: {time}"
+            )
+            next_level_btn = msg.addButton("Nächstes Level", QMessageBox.ButtonRole.AcceptRole)
+            continue_btn = msg.addButton("Weiter spielen", QMessageBox.ButtonRole.RejectRole)
+            menu_btn = msg.addButton("Hauptmenü", QMessageBox.ButtonRole.DestructiveRole)
+
+            msg.exec()
+
+            if msg.clickedButton() == next_level_btn:
+                next_level_id = self.viewmodel.level_id + 1
+                player_id = self.viewmodel.player_id
+                self.start_game_clicked.emit(player_id, next_level_id)
+
+            elif msg.clickedButton() == continue_btn:
+                self.viewmodel.resume_timer()
+
+            elif msg.clickedButton() == menu_btn:
+                self.navigate_to_main_menu.emit()
 
     @Slot(str)
     def _on_bridge_type_selected(self, bridge_type_name):

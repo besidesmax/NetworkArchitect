@@ -145,6 +145,24 @@ class GameViewModel(QObject):
                                  })
         return bridges_view
 
+    @Property(int)
+    def player_id(self) -> int:
+        """Get the ID of the player associated with this game session.
+
+        Returns:
+            int: The unique identifier of the player profile.
+        """
+        return self._player.player_id
+
+    @Property(int)
+    def level_id(self) -> int:
+        """Get the ID of the currently active level.
+
+        Returns:
+            int: The unique identifier of the level being played in this session.
+        """
+        return self._level.level_id
+
     @Property(bool)
     def is_last_level(self) -> bool:
         """
