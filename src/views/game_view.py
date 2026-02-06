@@ -108,6 +108,12 @@ class GameView(QWidget):
         self.validate_btn.clicked.connect(self.viewmodel.validate_solution)
         left_panel.addWidget(self.validate_btn)
 
+        # Help Button
+        self.help_btn = QPushButton("❓ Hilfe")
+        self.help_btn.setMinimumHeight(40)
+        self.help_btn.clicked.connect(self._show_help_dialog)
+        left_panel.addWidget(self.help_btn)
+
         left_panel.addStretch()
         parent_layout.addLayout(left_panel, 1)
 
@@ -463,6 +469,48 @@ class GameView(QWidget):
     def _show_error(self, message):
         """Display error message."""
         QMessageBox.warning(self, "Fehler", message)
+
+    @Slot()
+    def _show_help_dialog(self):
+        """Show game instructions dialog."""
+        help_text = """
+    <h2>🎮 Spielanleitung Network Architect</h2>
+
+    <h3>Ziel:</h3>
+    <p>Verbinde alle Netzwerkknoten mit dem Server.</p>
+
+    <h3>Spielablauf:</h3>
+    <ol>
+    <li>Bridge-Typ rechts wählen (z.B. Ethernet)</li>
+    <li>1. Node (farbiger Kreise) anklicken</li>
+    <li>GridPoints (graue kleine Kreise) die den Weg darstellen anklicken</li>
+    <li>2. Node (farbiger Kreise) anklicken</li>
+    <li>"Brücke platzieren" klicken</li>
+    <li>"Lösung prüfen" wenn fertig</li>
+    </ol>
+
+    <h3>Knoten-Typen:</h3>
+    <ul>
+    <li><b>Server (S):</b> Mind. 2 Verbindungen nötig</li>
+    <li><b>Client (C):</b> Endgerät</li>
+    <li><b>Router (R):</b> Verteiler</li>
+    <li><b>Firewall (F):</b> Max. 2 Verbindungen</li>
+    </ul>
+
+    <h3>Steuerung:</h3>
+    <ul>
+    <li><b>Linksklick:</b> Auswählen</li>
+    <li><b>Rechtsklick:</b> Auswahl zurücksetzen</li>
+    <li><b>Brücke löschen:</b> Button aktivieren, dann Brücke anklicken</li>
+    </ul>
+        """
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Spielanleitung")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(help_text)
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.exec()
 
     @Slot(int, int, str)
     def _on_level_completed(self, redundancy, performance, time):
