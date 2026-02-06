@@ -639,8 +639,6 @@ class GameView(QWidget):
                 bridges_id.append(item.data(0))
 
         for bridge_id in bridges_id:
-            print(f" allBridges = {self.viewmodel.bridges}")
-            print(f" remove ID= {bridge_id}")
             self.viewmodel.remove_bridge(bridge_id)
             self._render_bridges()
 
