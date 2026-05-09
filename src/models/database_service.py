@@ -15,11 +15,28 @@ class DatabaseService:
     """Manages SQLite persistence for Network Architect game sessions."""
 
     def __init__(self, db_path: str = None) -> None:
-        self.db_path = os.path.join(Config.DATABASE_PATH)
-        # Ensure data directory exists
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        """
+        Initialize the database connection.
+
+        Args:
+            db_path (str, optional): Custom path for the SQLite database.
+                                     If None, uses the default from Config.
+                                     Can be ':memory:' for isolated unit testing.
+        """
+        # Set the database path, allowing dependency injection for tests
+        if db_path:
+            self.db_path = str(db_path)
+
+        else:
+
+            self.db_path = str(Config.DATABASE_PATH)
+
+        # Ensure the data directory exists, unless using an in-memory database
+        if self.db_path != ":memory:":
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+
+        # Establish connection and create tables if they do not exist
         self.conn = sqlite3.connect(self.db_path)
-        # Initialize database schema
         self._init_schema()
 
     def _init_schema(self) -> None:
