@@ -14,7 +14,7 @@ from config import Config
 class DatabaseService:
     """Manages SQLite persistence for Network Architect game sessions."""
 
-    def __init__(self) -> None:
+    def __init__(self, db_path: str = None) -> None:
         self.db_path = os.path.join(Config.DATABASE_PATH)
         # Ensure data directory exists
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
