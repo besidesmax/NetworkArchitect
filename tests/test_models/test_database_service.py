@@ -446,3 +446,246 @@ class TestLevelOperations:
         # Act & Assert 2: Non-existent level ID raises ValueError
         with pytest.raises(ValueError):
             db_service.delete_level(999)
+
+
+class TestCompletedLevelOperations:
+    """Tests for player-level completion and unlocking operations."""
+    # Shared test data: minimal valid node configuration for level creation
+    VALID_NODE_CONFIG = ('[{"grid_point_id": 2, "node_type": "CLIENT"},'
+                         ' {"grid_point_id": 5, "node_type": "SERVER"}]')
+
+    def test_save_completed_level_success(self, db_service: DatabaseService):
+        """
+        Test that a completed level attempt is successfully saved.
+
+        Verifies that save_completed_level persists the entry,
+        and it is retrievable via get_player_completed_levels.
+        """
+        # Arrange: Create player and level
+        db_service.create_player("Player_1")
+        db_service.create_level(Difficulty.MEDIUM,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        # Act: Save completed level attempt
+        db_service.save_completed_level(1,
+                                        1,
+                                        500,
+                                        500,
+                                        500)
+
+        # Assert: Entry is retrievable and contains correct data
+        completed = db_service.get_player_completed_levels(1)
+        assert len(completed) == 1
+        assert completed[0]["level_id"] == 1
+        assert completed[0]["elapsed_time_seconds"] == 500
+
+    def test_save_completed_level_invalid_cases(self, db_service: DatabaseService):
+        """
+        Test that save_completed_level raises ValueError for invalid inputs.
+
+        Verifies rejection of:
+        1. Non-existent player ID.
+        2. Non-existent level ID.
+        3. Negative elapsed time.
+        """
+        # Arrange: Create player and level
+        db_service.create_player("Player_1")
+        db_service.create_level(Difficulty.MEDIUM,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        # Act & Assert 1: Non-existent player ID raises ValueError
+        with pytest.raises(ValueError):
+            db_service.save_completed_level(5,
+                                            1,
+                                            500,
+                                            500,
+                                            500)
+
+        # Act & Assert 2: Non-existent level ID raises ValueError
+        with pytest.raises(ValueError):
+            db_service.save_completed_level(1,
+                                            5,
+                                            500,
+                                            500,
+                                            500)
+
+        # Act & Assert 3: Negative elapsed time is rejected
+        with pytest.raises(ValueError):
+            db_service.save_completed_level(1,
+                                            1,
+                                            -500,
+                                            500,
+                                            500)
+
+    def test_get_player_completed_levels_success(self, db_service: DatabaseService):
+        """
+        Test retrieving completed levels for a player in both empty and populated states.
+
+        Verifies that:
+        1. An empty list is returned if the player has no completed levels.
+        2. All completed level data is correctly retrieved after saving.
+        """
+        # Arrange: Create player and level
+        db_service.create_player("Player_1")
+        db_service.create_level(Difficulty.MEDIUM,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        # Act & Assert 1: No completed levels yet returns empty list
+        assert db_service.get_player_completed_levels(1) == []
+
+        # Act: Save completed level attempt
+        db_service.save_completed_level(1,
+                                        1,
+                                        500,
+                                        500,
+                                        500)
+
+        # Assert: Completed level is retrievable with correct data
+        completed_levels = db_service.get_player_completed_levels(1)
+
+        assert len(completed_levels) == 1
+        assert completed_levels[0]["level_id"] == 1
+        assert completed_levels[0]["difficulty"] == "MEDIUM"
+        assert completed_levels[0]["elapsed_time_seconds"] == 500
+        assert completed_levels[0]["achieved_performance"] == 500
+        assert completed_levels[0]["achieved_redundancy"] == 500
+
+    def test_get_player_completed_levels_invalid_cases(self, db_service: DatabaseService):
+        """
+        Test that get_player_completed_levels raises ValueError for invalid player IDs.
+
+        Verifies rejection of:
+        1. Zero as player ID.
+        2. Negative player IDs.
+        """
+
+        # Act & Assert 1: Zero is not a valid player ID
+        with pytest.raises(ValueError):
+            db_service.get_player_completed_levels(0)
+
+        # Act & Assert 2: Negative player ID is rejected immediately
+        with pytest.raises(ValueError):
+            db_service.get_player_completed_levels(-1)
+
+    def test_get_level_completed_by_players_success(self, db_service: DatabaseService):
+        """
+        Test retrieving players who completed a level in both empty and populated states.
+
+        Verifies that:
+        1. An empty list is returned if no player has completed the level.
+        2. All completion data is correctly retrieved after saving.
+        """
+        # Arrange: Create player and level
+        db_service.create_player("Player_1")
+        db_service.create_level(Difficulty.MEDIUM,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        # Act & Assert 1: No completions yet returns empty list
+        assert db_service.get_level_completed_by_players(1) == []
+
+        # Act: Save completed level attempt
+        db_service.save_completed_level(1,
+                                        1,
+                                        500,
+                                        500,
+                                        500)
+
+        # Assert: Completion is retrievable with correct player data
+        completed_levels = db_service.get_level_completed_by_players(1)
+
+        assert len(completed_levels) == 1
+        assert completed_levels[0]["player_id"] == 1
+        assert completed_levels[0]["player_name"] == "Player_1"
+        assert completed_levels[0]["elapsed_time_seconds"] == 500
+        assert completed_levels[0]["achieved_performance"] == 500
+        assert completed_levels[0]["achieved_redundancy"] == 500
+
+    def test_get_level_completed_by_players_invalid_cases(self, db_service: DatabaseService):
+        """
+        Test that get_level_completed_by_players raises ValueError for invalid level IDs.
+
+        Verifies rejection of:
+        1. Zero as level ID.
+        2. Negative level IDs.
+        """
+        # Act & Assert 1: Zero is not a valid level ID
+        with pytest.raises(ValueError):
+            db_service.get_level_completed_by_players(0)
+
+        # Act & Assert 2: Negative level ID is rejected immediately
+        with pytest.raises(ValueError):
+            db_service.get_level_completed_by_players(-1)
+
+    def test_get_unlocked_levels_by_player_success(self, db_service: DatabaseService):
+        """
+        Test the sequential level unlocking logic for a player.
+
+        Verifies that:
+        1. Level 1 is always unlocked even without any completions.
+        2. Completing Level 1 unlocks Level 2 additionally.
+        """
+        # Arrange: Create player and two levels
+        db_service.create_player("Player_1")
+        db_service.create_level(Difficulty.MEDIUM,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        db_service.create_level(Difficulty.HARD,
+                                500,
+                                500,
+                                5000,
+                                self.VALID_NODE_CONFIG)
+
+        # Act & Assert 1: Level 1 is always unlocked before any completion
+        unlocked = db_service.get_unlocked_levels_by_player(1)
+        assert len(unlocked) == 1
+        assert unlocked[0]["level_id"] == 1
+
+        # Act: Complete Level 1
+        db_service.save_completed_level(1,
+                                        1,
+                                        500,
+                                        500,
+                                        500)
+
+        # Act & Assert 2: Level 1 (completed) + Level 2 (next) are unlocked
+        unlocked_levels = db_service.get_unlocked_levels_by_player(1)
+
+        assert len(unlocked_levels) == 2
+        assert unlocked_levels[0]["level_id"] == 1
+        assert unlocked_levels[0]["difficulty"] == "MEDIUM"
+        assert unlocked_levels[1]["level_id"] == 2
+        assert unlocked_levels[1]["difficulty"] == "HARD"
+
+    def test_get_unlocked_levels_by_player_invalid_cases(self, db_service: DatabaseService):
+        """
+        Test that get_unlocked_levels_by_player raises ValueError for invalid player IDs.
+
+        Verifies rejection of:
+        1. Negative player IDs.
+        2. Zero as player ID.
+        3. Valid-looking IDs that do not exist in the database.
+        """
+        # Act & Assert 1: Negative player ID is rejected immediately
+        with pytest.raises(ValueError):
+            db_service.get_unlocked_levels_by_player(-1)
+        # Act & Assert 2: Zero is not a valid player ID
+        with pytest.raises(ValueError):
+            db_service.get_unlocked_levels_by_player(0)
+        # Act & Assert 3: Non-existent player ID raises ValueError
+        with pytest.raises(ValueError):
+            db_service.get_unlocked_levels_by_player(500)
