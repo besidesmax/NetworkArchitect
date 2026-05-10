@@ -331,7 +331,7 @@ class DatabaseService:
             List of all Level instances ordered by difficulty and id.
 
         Raises:
-            ValueError: If a level cannot be loaded or JSON parsing fails.
+            ValueError: Propagated from get_level() if JSON parsing fails for any level entry.
         """
         cursor = self.conn.cursor()
 
