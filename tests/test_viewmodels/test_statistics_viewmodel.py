@@ -11,15 +11,18 @@ from viewmodels.statistics_viewmodel import StatisticsViewModel
 @pytest.fixture
 def db_service(tmp_path):
     """Create temporary database for testing."""
-    db_path = str(tmp_path / "test.db")
+    # Reset GridPoint counter for test isolation
+    from models.grid_point import GridPoint
+    GridPoint.id_counter = 0
+    GridPoint.all_instances = []
 
+    db_path = str(tmp_path / "test.db")
     db = DatabaseService()
     db.db_path = db_path
 
     import sqlite3
     db.conn.close()
     db.conn = sqlite3.connect(db_path)
-
     db._init_schema()
 
     return db
@@ -41,14 +44,15 @@ def sample_levels(db_service):
         target_performance_score=80,
         target_redundancy_score=70,
         start_budget=100,
-        node_config_json='[{"grid_point_id": 1, "node_type": "SERVER"}]'
+        node_config_json='[{"grid_point_id": 0, "node_type": "SERVER"}]'
     )
+
     level2 = db_service.create_level(
         Difficulty.MEDIUM,
         target_performance_score=85,
         target_redundancy_score=75,
         start_budget=120,
-        node_config_json='[{"grid_point_id": 1, "node_type": "SERVER"}]'
+        node_config_json=f'[{{"grid_point_id": 0, "node_type": "SERVER"}}]'
     )
     return [level1, level2]
 
