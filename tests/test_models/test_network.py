@@ -31,54 +31,62 @@ def test_add_node() -> None:
     assert node1 in network1.nodes
 
 
-def test_place_bridge() -> None:
+def test_add_bridge() -> None:
+    """
+    Test placing a bridge between two nodes in the network.
+
+    Verifies that:
+    - A valid bridge is successfully added to the network.
+    - Reusing an already occupied GridPoint raises a ValueError.
+    - A non-adjacent first GridPoint raises a ValueError.
+    - Non-adjacent GridPoints in the path raise a ValueError.
+    - Adding a bridge increases current_connections on both nodes by 1.
+    - Passing a non-Node object as from_node or to_node raises a ValueError.
+    """
+    # Arrange
     network1 = Network()
     board = create_board(3, 3)
     node1 = Node([board[0]], NodeType.CLIENT)
     node2 = Node([board[5]], NodeType.CLIENT)
 
-    # Ensure place_bridge adds a bridge to the network
+    # Act & Assert 1: Valid bridge is added to the network
     assert len(network1.bridges) == 0
     bridge1 = network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
     assert bridge1 in network1.bridges
 
-
+    # Arrange
     network1.reset_network()
     board = create_board(3, 3)
     node1 = Node([board[0]], NodeType.CLIENT)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
 
-    # Reusing an already used GridPoint must raise ValueError
+    # Act & Assert 2: Reusing an already used GridPoint raises ValueError
     network1.add_bridge(node1, [board[3], board[4]], node2, BridgeType.FIBER)
     with pytest.raises(ValueError):
         network1.add_bridge(node2, [board[4]], node3, BridgeType.FIBER)
 
-    # First GridPoint not adjacent to from_node must raise ValueError
+    # Arrange
     network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
+
+    # Act & Assert 3: First GridPoint not adjacent to from_node raises ValueError
     with pytest.raises(ValueError):
         network1.add_bridge(node2, [board[3]], node3, BridgeType.FIBER)
 
-    # Last GridPoint not adjacent to to_node must raise ValueError
+    # Arrange
     network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
     node3 = Node([board[7]], NodeType.CLIENT)
-    with pytest.raises(ValueError):
-        network1.add_bridge(node2, [board[3]], node3, BridgeType.FIBER)
 
-    # Non-adjacent GridPoints in the path must raise ValueError
-    network1.reset_network()
-    board = create_board(3, 3)
-    node2 = Node([board[5]], NodeType.CLIENT)
-    node3 = Node([board[7]], NodeType.CLIENT)
+    # Act & Assert 4: Non-adjacent GridPoints in the path raise ValueError
     with pytest.raises(ValueError):
         network1.add_bridge(node2, [board[2], board[1], board[0], board[6]], node3, BridgeType.FIBER)
 
-    # Adding a bridge must increase current_connections on both nodes
+    # Arrange
     network1.reset_network()
     board = create_board(3, 3)
     node2 = Node([board[5]], NodeType.CLIENT)
@@ -90,11 +98,16 @@ def test_place_bridge() -> None:
     assert node2_0 == 0
     assert node3_0 == 0
 
+    # Act & Assert 5: Adding a bridge increases current_connections on both nodes by 1
     network1.add_bridge(node2, [board[4]], node3, BridgeType.FIBER)
-    node2_1 = node2.current_connections
-    node3_1 = node3.current_connections
-    assert node2_1 == 1
-    assert node3_1 == 1
+    assert node2.current_connections == 1
+    assert node3.current_connections == 1
+
+    # Act & Assert 6: Passing a non-Node object as from_node or to_node raises ValueError
+    with pytest.raises(ValueError):
+        network1.add_bridge("not_a_node", [board[4]], node3, BridgeType.FIBER)
+    with pytest.raises(ValueError):
+        network1.add_bridge(node2, [board[4]], "not_a_node", BridgeType.FIBER)
 
 
 def test_delete_bridge() -> None:
@@ -169,3 +182,25 @@ def test_find_path() -> None:
     # add bridge
     network1.add_bridge(node3, [board1[34], board1[25], board1[24]], node2, BridgeType.ETHERNET)
     assert len(network1.find_path(node1)) == 5
+
+
+def test_get_server() -> None:
+    """
+    Test retrieving the server node from the network.
+
+    Verifies that:
+    - Calling get_server() on a network without a server node raises a ValueError.
+    - Calling get_server() returns the correct server node after it has been added.
+    """
+    # Arrange
+    network1 = Network()
+    gp_node = GridPoint(1, 1)
+    node1 = Node([gp_node], NodeType.SERVER)
+
+    # Act & Assert 1: No server in network raises ValueError
+    with pytest.raises(ValueError):
+        network1.get_server()
+
+    # Act & Assert 2: Server node is returned after being added
+    network1.add_node(node1)
+    assert network1.get_server() == node1
