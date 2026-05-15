@@ -28,12 +28,12 @@ def test_add_connections(node_type: NodeType) -> None:
 @pytest.mark.parametrize("node_type", NodeType)
 def test_remove_connections(node_type: NodeType) -> None:
     """
-#     Test Node.remove_connection() for all NodeTypes.
-#
-#     The test verifies two behaviors:
-#     - Normal case: current_connections decreases by 1 while it is > 0.
-#     - Lower bound: current_connections never drops below 0.
-#     """
+    Test Node.remove_connection() for all NodeTypes.
+
+    The test verifies two behaviors:
+    - Normal case: current_connections decreases by 1 while it is > 0.
+    - Lower bound: current_connections never drops below 0.
+    """
 
     grid_point1 = GridPoint(1, 1)
     node = Node([grid_point1], node_type=node_type)
