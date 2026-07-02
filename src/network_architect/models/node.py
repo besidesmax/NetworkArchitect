@@ -1,5 +1,5 @@
-from models.grid_point import GridPoint
-from models.node_type import NodeType
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node_type import NodeType
 
 
 class Node:

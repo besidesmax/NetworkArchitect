@@ -1,9 +1,9 @@
 import pytest
 
-from models.grid_point import GridPoint
-from models.node import Node
-from models.node_config import NodeConfig
-from models.node_type import NodeType
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node import Node
+from network_architect.models.node_config import NodeConfig
+from network_architect.models.node_type import NodeType
 
 
 def test_node_config():

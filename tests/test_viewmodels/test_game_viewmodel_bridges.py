@@ -1,12 +1,12 @@
 from unittest.mock import patch, Mock
 
-from viewmodels.game_viewmodel import GameViewModel
+from network_architect.viewmodels.game_viewmodel import GameViewModel
 
 
 class TestGameViewModelPlaceBridge:
     """Test place_bridge_vm slot."""
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_validates_from_node_id(
             self,
             mock_game_session_class,
@@ -26,7 +26,7 @@ class TestGameViewModelPlaceBridge:
 
         assert "from_node_id 999 not found" in blocker.args[0]
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_validates_from_node_id(
             self,
             mock_game_session_class,
@@ -45,7 +45,7 @@ class TestGameViewModelPlaceBridge:
         with qtbot.waitSignal(viewmodel.error_occurred, timeout=1000):
             viewmodel.place_bridge_vm(1, [], 999)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_validates_gridpoint_ids(
             self,
             mock_game_session_class,
@@ -64,7 +64,7 @@ class TestGameViewModelPlaceBridge:
         with qtbot.waitSignal(viewmodel.error_occurred, timeout=1000):
             viewmodel.place_bridge_vm(1, [999], 2)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_requires_bridge_type_selected(
             self,
             mock_game_session_class,
@@ -84,7 +84,7 @@ class TestGameViewModelPlaceBridge:
 
         assert "BridgeType is not selected" in blocker.args[0]
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_calls_game_session_place_bridge(
             self,
             mock_game_session_class,
@@ -104,7 +104,7 @@ class TestGameViewModelPlaceBridge:
         # Verify place_bridge was called once
         mock_game_session.place_bridge.assert_called_once()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_emits_bridge_placed_signal(
             self,
             mock_game_session_class,
@@ -122,7 +122,7 @@ class TestGameViewModelPlaceBridge:
         with qtbot.waitSignal(viewmodel.bridges_changed, timeout=1000):
             viewmodel.place_bridge_vm(1, [], 2)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_emits_budget_changed_signal(
             self,
             mock_game_session_class,
@@ -144,7 +144,7 @@ class TestGameViewModelPlaceBridge:
 
         assert blocker.args[0] == 800
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_emits_nodes_changed_signal(
             self,
             mock_game_session_class,
@@ -162,7 +162,7 @@ class TestGameViewModelPlaceBridge:
         with qtbot.waitSignal(viewmodel.nodes_changed, timeout=1000):
             viewmodel.place_bridge_vm(1, [], 2)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_place_bridge_emits_error_on_exception(
             self,
             mock_game_session_class,
@@ -189,7 +189,7 @@ class TestGameViewModelPlaceBridge:
 class TestGameViewModelRemoveBridge:
     """Test remove_bridge slot."""
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_validates_bridge_id(
             self,
             mock_game_session_class,
@@ -210,7 +210,7 @@ class TestGameViewModelRemoveBridge:
 
         assert "not found" in blocker.args[0]
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_calls_game_session_remove_bridge(
             self,
             mock_game_session_class,
@@ -233,7 +233,7 @@ class TestGameViewModelRemoveBridge:
 
         mock_game_session.remove_bridge.assert_called_once_with(mock_bridge)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_emits_bridge_removed_signal(
             self,
             mock_game_session_class,
@@ -255,7 +255,7 @@ class TestGameViewModelRemoveBridge:
         with qtbot.waitSignal(viewmodel.bridges_changed, timeout=1000):
             viewmodel.remove_bridge(1)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_emits_budget_changed_signal(
             self,
             mock_game_session_class,
@@ -280,7 +280,7 @@ class TestGameViewModelRemoveBridge:
 
         assert blocker.args[0] == 1200
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_emits_nodes_changed_signal(
             self,
             mock_game_session_class,
@@ -302,7 +302,7 @@ class TestGameViewModelRemoveBridge:
         with qtbot.waitSignal(viewmodel.nodes_changed, timeout=1000):
             viewmodel.remove_bridge(1)
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_remove_bridge_emits_error_on_exception(
             self,
             mock_game_session_class,

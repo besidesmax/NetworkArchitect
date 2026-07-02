@@ -1,10 +1,10 @@
-from models.bridge_type import BridgeType
-from models.difficulty import Difficulty
-from models.game_session import GameSession
-from models.level import Level
-from models.node import Node
-from models.node_type import NodeType
-from models.player import Player
+from network_architect.models.bridge_type import BridgeType
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.game_session import GameSession
+from network_architect.models.level import Level
+from network_architect.models.node import Node
+from network_architect.models.node_type import NodeType
+from network_architect.models.player import Player
 
 
 def test_place_bridge():

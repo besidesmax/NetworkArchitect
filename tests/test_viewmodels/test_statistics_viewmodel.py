@@ -3,16 +3,16 @@
 import pytest
 from PySide6.QtCore import QObject
 
-from models.database_service import DatabaseService
-from models.difficulty import Difficulty
-from viewmodels.statistics_viewmodel import StatisticsViewModel
+from network_architect.models.database_service import DatabaseService
+from network_architect.models.difficulty import Difficulty
+from network_architect.viewmodels.statistics_viewmodel import StatisticsViewModel
 
 
 @pytest.fixture
 def db_service(tmp_path):
     """Create temporary database for testing."""
     # Reset GridPoint counter for test isolation
-    from models.grid_point import GridPoint
+    from network_architect.models.grid_point import GridPoint
     GridPoint.id_counter = 0
     GridPoint.all_instances = []
 

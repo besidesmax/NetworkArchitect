@@ -3,12 +3,12 @@ import os
 import sqlite3
 from typing import List, Dict, Any
 
-from models.difficulty import Difficulty
-from models.level import Level
-from models.node import Node
-from models.node_type import NodeType
-from models.player import Player
 from config import Config
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.level import Level
+from network_architect.models.node import Node
+from network_architect.models.node_type import NodeType
+from network_architect.models.player import Player
 
 
 class DatabaseService:

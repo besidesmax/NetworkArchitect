@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QPushButton, Q
                                QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsTextItem,
                                QScrollArea, QGraphicsItem)
 
-from viewmodels.coordinate_mapper import CoordinateMapper
+from network_architect.viewmodels.coordinate_mapper import CoordinateMapper
 from .game_canvas import GameCanvas
 
 

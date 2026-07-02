@@ -2,8 +2,8 @@
 Level statistics tab showing players who completed each level.
 """
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableWidget, QTableWidgetItem, QLabel
-from PySide6.QtCore import Qt, Slot
 
 
 class LevelStatisticsTab(QWidget):

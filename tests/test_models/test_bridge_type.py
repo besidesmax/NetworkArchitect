@@ -1,4 +1,4 @@
-from models.bridge_type import BridgeType
+from network_architect.models.bridge_type import BridgeType
 
 
 def test_bridge_type_properties():

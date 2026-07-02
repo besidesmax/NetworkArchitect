@@ -1,7 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMainWindow, QStackedWidget
 from PySide6.QtGui import QIcon
-from .statistics_view import StatisticsView
+from PySide6.QtWidgets import QMainWindow, QStackedWidget
+
 from config import Config
 
 
@@ -28,7 +27,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.stack)
 
         # Import and create views
-        from views.main_menu_view import MainMenuView
+        from network_architect.views.main_menu_view import MainMenuView
         self.main_menu_view = MainMenuView()
         self.stack.addWidget(self.main_menu_view)
 
@@ -50,8 +49,8 @@ class MainWindow(QMainWindow):
         """Display the level selection view."""
 
         if self.level_selection_view is None:
-            from viewmodels.level_selection_viewmodel import LevelSelectionViewModel
-            from views.level_selection_view import LevelSelectionView
+            from network_architect.viewmodels.level_selection_viewmodel import LevelSelectionViewModel
+            from network_architect.views.level_selection_view import LevelSelectionView
 
             level_selection_viewmodel = LevelSelectionViewModel(self.db_service)
             self.level_selection_view = LevelSelectionView(level_selection_viewmodel)
@@ -70,8 +69,8 @@ class MainWindow(QMainWindow):
     def show_statistics_view(self):
         """Display the statistics view."""
         if self.statistics_view is None:
-            from viewmodels.statistics_viewmodel import StatisticsViewModel
-            from views.statistics_view import StatisticsView
+            from network_architect.viewmodels import StatisticsViewModel
+            from network_architect.views.statistics_view import StatisticsView
 
             stats_viewmodel = StatisticsViewModel(self.db_service)
             self.statistics_view = StatisticsView(stats_viewmodel)
@@ -84,8 +83,8 @@ class MainWindow(QMainWindow):
 
     def show_game_view(self, player_id: int, level_id: int):
         """Display game view with selected player and level."""
-        from viewmodels.game_viewmodel import GameViewModel
-        from views.game_view import GameView
+        from network_architect.viewmodels.game_viewmodel import GameViewModel
+        from network_architect.views.game_view import GameView
 
         game_vm = GameViewModel(player_id, level_id, self.db_service)
 

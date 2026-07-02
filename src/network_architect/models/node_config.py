@@ -1,4 +1,4 @@
-from models.node import Node
+from network_architect.models.node import Node
 
 
 class NodeConfig:

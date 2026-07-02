@@ -12,4 +12,4 @@ build/
 docs/*.docx
 tests/test.py
 docs/test_network_sample.py
-src/models/data
+src/network_architect/models/data

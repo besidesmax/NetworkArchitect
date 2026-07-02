@@ -2,11 +2,11 @@
 Level selection view for choosing player and level to play.
 """
 
+from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                                QComboBox, QListWidget, QListWidgetItem,
                                QPushButton, QLabel, QMessageBox, QInputDialog)
-from PySide6.QtCore import Qt, Signal, Slot
-from PySide6.QtGui import QFont
 
 
 class LevelSelectionView(QWidget):

@@ -1,5 +1,5 @@
-from models.difficulty import Difficulty
-from models.level import Level
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.level import Level
 
 
 def test_create_level() -> None:

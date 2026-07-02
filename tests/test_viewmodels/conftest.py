@@ -3,11 +3,11 @@ from unittest.mock import Mock
 import pytest
 from PySide6.QtWidgets import QApplication
 
-from models.difficulty import Difficulty
-from models.grid_point import GridPoint
-from models.level import Level
-from models.node import Node
-from models.player import Player
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.level import Level
+from network_architect.models.node import Node
+from network_architect.models.player import Player
 
 
 @pytest.fixture(scope="session")

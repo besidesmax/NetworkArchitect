@@ -2,9 +2,9 @@
 
 import pytest
 
-from models.database_service import DatabaseService
-from models.difficulty import Difficulty
-from models.node_type import NodeType
+from network_architect.models.database_service import DatabaseService
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.node_type import NodeType
 
 
 @pytest.fixture

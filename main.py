@@ -1,11 +1,10 @@
 import sys
-import time
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QTimer, QEventLoop
+from PySide6.QtCore import QTimer
 
-from models.database_service import DatabaseService
-from views.splash_screen import SplashScreen
-from views.main_window import MainWindow
+from network_architect.models.database_service import DatabaseService
+from network_architect.views.splash_screen import SplashScreen
+from network_architect.views.main_window import MainWindow
 
 
 def main():

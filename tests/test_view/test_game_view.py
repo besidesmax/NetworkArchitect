@@ -1,8 +1,7 @@
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QPointF
-from views.game_view import GameView
+from network_architect.views.game_view import GameView
 
 
 @pytest.fixture

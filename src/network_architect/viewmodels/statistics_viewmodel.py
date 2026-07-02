@@ -1,7 +1,7 @@
 """ViewModel for statistics screens in Network Architect game."""
 from PySide6.QtCore import QObject, Slot, Signal, Property
 
-from models.database_service import DatabaseService
+from network_architect.models.database_service import DatabaseService
 
 
 class StatisticsViewModel(QObject):

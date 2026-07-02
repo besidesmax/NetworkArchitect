@@ -2,9 +2,9 @@
 Statistics view with tabs for player and level statistics.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton, QLabel
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton, QLabel
 
 
 class StatisticsView(QWidget):
@@ -38,8 +38,8 @@ class StatisticsView(QWidget):
         self.tab_widget = QTabWidget()
 
         # Import Tab-Widgets
-        from views.player_statistics_tab import PlayerStatisticsTab
-        from views.level_statistics_tab import LevelStatisticsTab
+        from network_architect.views.player_statistics_tab import PlayerStatisticsTab
+        from network_architect.views.level_statistics_tab import LevelStatisticsTab
 
         self.player_tab = PlayerStatisticsTab(self.viewmodel)
         self.level_tab = LevelStatisticsTab(self.viewmodel)

@@ -2,9 +2,9 @@ from typing import List, Dict, Any
 
 from PySide6.QtCore import QObject, Signal, Property, Slot, QTimer
 
-from models.bridge_type import BridgeType
-from models.database_service import DatabaseService
-from models.game_session import GameSession
+from network_architect.models.bridge import BridgeType
+from network_architect.models.database_service import DatabaseService
+from network_architect.models.game_session import GameSession
 
 
 class GameViewModel(QObject):

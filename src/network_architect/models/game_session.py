@@ -1,12 +1,12 @@
 from itertools import chain, combinations
 
-from models.bridge import Bridge
-from models.bridge_type import BridgeType
-from models.grid_point import GridPoint
-from models.level import Level
-from models.network import Network
-from models.node import Node
-from models.player import Player
+from network_architect.models.bridge import Bridge
+from network_architect.models.bridge_type import BridgeType
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.level import Level
+from network_architect.models.network import Network
+from network_architect.models.node import Node
+from network_architect.models.player import Player
 
 
 class GameSession:

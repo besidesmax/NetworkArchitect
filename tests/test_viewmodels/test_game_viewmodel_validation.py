@@ -1,12 +1,12 @@
 from unittest.mock import patch
 
-from viewmodels.game_viewmodel import GameViewModel
+from network_architect.viewmodels.game_viewmodel import GameViewModel
 
 
 class TestGameViewModelValidateSolutionSolved:
     """Test validate_solution when level is solved."""
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_pauses_timer_when_solved(
             self,
             mock_game_session_class,
@@ -27,7 +27,7 @@ class TestGameViewModelValidateSolutionSolved:
 
         assert not viewmodel._timer.isActive()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_calls_is_it_solved(
             self,
             mock_game_session_class,
@@ -46,7 +46,7 @@ class TestGameViewModelValidateSolutionSolved:
 
         mock_game_session.is_it_solved.assert_called_once()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_calculates_scores_when_solved(
             self,
             mock_game_session_class,
@@ -66,7 +66,7 @@ class TestGameViewModelValidateSolutionSolved:
         mock_game_session.calculate_redundancy_score.assert_called_once()
         mock_game_session.calculate_performance.assert_called_once()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_saves_to_database_when_solved(
             self,
             mock_game_session_class,
@@ -95,7 +95,7 @@ class TestGameViewModelValidateSolutionSolved:
             92
         )
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_emits_level_completed_signal(
             self,
             mock_game_session_class,
@@ -120,7 +120,7 @@ class TestGameViewModelValidateSolutionSolved:
 
         assert blocker.args == [85, 92, "02:05"]
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_timer_stays_stopped_when_solved(
             self,
             mock_game_session_class,
@@ -143,7 +143,7 @@ class TestGameViewModelValidateSolutionSolved:
 class TestGameViewModelValidateSolutionNotSolved:
     """Test validate_solution when level is not solved."""
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_resumes_timer_when_not_solved(
             self,
             mock_game_session_class,
@@ -162,7 +162,7 @@ class TestGameViewModelValidateSolutionNotSolved:
 
         assert viewmodel._timer.isActive()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_emits_error_when_not_solved(
             self,
             mock_game_session_class,
@@ -183,7 +183,7 @@ class TestGameViewModelValidateSolutionNotSolved:
 
         assert blocker.args[0] == "Level is not completed"
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_does_not_save_to_db_when_not_solved(
             self,
             mock_game_session_class,
@@ -202,7 +202,7 @@ class TestGameViewModelValidateSolutionNotSolved:
 
         mock_db_service.save_completed_level.assert_not_called()
 
-    @patch('viewmodels.game_viewmodel.GameSession')
+    @patch('network_architect.viewmodels.game_viewmodel.GameSession')
     def test_validate_solution_does_not_calculate_scores_when_not_solved(
             self,
             mock_game_session_class,

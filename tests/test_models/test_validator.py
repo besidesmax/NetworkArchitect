@@ -2,10 +2,10 @@
 
 import pytest
 
-from models.grid_point import GridPoint
-from models.node import Node
-from models.node_type import NodeType
-from models.validator import Validator
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node import Node
+from network_architect.models.node_type import NodeType
+from network_architect.models.validator import Validator
 
 
 def test_is_grid_point_used():

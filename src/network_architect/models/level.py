@@ -1,6 +1,6 @@
-from models.difficulty import Difficulty
-from models.grid_point import GridPoint
-from models.node_config import NodeConfig
+from network_architect.models.difficulty import Difficulty
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node_config import NodeConfig
 
 
 class Level:

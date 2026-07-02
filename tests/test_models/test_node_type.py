@@ -1,4 +1,4 @@
-from models.node_type import NodeType
+from network_architect.models.node_type import NodeType
 
 
 def test_node_type_properties():

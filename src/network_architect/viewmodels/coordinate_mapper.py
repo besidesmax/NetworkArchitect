@@ -2,7 +2,7 @@
 
 from typing import Tuple
 
-from models.grid_point import GridPoint
+from network_architect.models.grid_point import GridPoint
 
 # Constants for default rendering configuration
 DEFAULT_CELL_SIZE = 50  # Pixels per grid cell

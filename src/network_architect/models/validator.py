@@ -1,5 +1,5 @@
-from models.grid_point import GridPoint
-from models.node import Node
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node import Node
 
 
 class Validator:

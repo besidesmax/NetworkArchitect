@@ -1,6 +1,6 @@
-from models.bridge_type import BridgeType
-from models.grid_point import GridPoint
-from models.node import Node
+from network_architect.models.bridge_type import BridgeType
+from network_architect.models.grid_point import GridPoint
+from network_architect.models.node import Node
 
 
 class Bridge:

@@ -2,8 +2,8 @@
 Player statistics tab showing completed levels per player.
 """
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableWidget, QTableWidgetItem, QLabel
-from PySide6.QtCore import Qt, Slot
 
 
 class PlayerStatisticsTab(QWidget):
