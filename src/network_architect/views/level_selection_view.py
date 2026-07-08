@@ -124,7 +124,7 @@ class LevelSelectionView(QWidget):
             "Enter player name (2-20 characters):"
         )
 
-        if ok and name:
+        if ok:
             self.viewmodel.create_player(name.strip())
 
     @Slot()
