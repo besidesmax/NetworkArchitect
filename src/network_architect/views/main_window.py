@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
     def show_statistics_view(self):
         """Display the statistics view."""
         if self.statistics_view is None:
-            from network_architect.viewmodels import StatisticsViewModel
+            from network_architect.viewmodels.statistics_viewmodel import StatisticsViewModel
             from network_architect.views.statistics_view import StatisticsView
 
             stats_viewmodel = StatisticsViewModel(self.db_service)
