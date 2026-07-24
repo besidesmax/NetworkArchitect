@@ -40,20 +40,24 @@ class Network:
                    bridge_type: BridgeType) -> Bridge:
         """Place a bridge between two nodes after validating the path.
 
+        The method checks that the endpoints are valid nodes, that all grid
+        points along the path are free and adjacent, and then updates the
+        network state (nodes, bridges, grid point usage and connection counts).
+
         Args:
-            from_node (Node): Start node of the bridge.
-            grid_points (list[GridPoint]): GridPoints along the bridge path.
-            to_node (Node): End node of the bridge.
-            bridge_type (BridgeType): Type of the bridge.
+            from_node: Start node of the bridge.
+            grid_points: Grid points along the bridge path.
+            to_node: End node of the bridge.
+            bridge_type: Type of the bridge.
 
         Raises:
-            ValueError: If grid_points is empty or any validation rule is violated.
+            ValueError: If grid_points is empty or any validation rule fails.
 
         Returns:
             Bridge: The created bridge instance.
         """
 
-        # check that from_node and to_node are Node instances
+        # Ensure endpoints are Node instances.
         if not isinstance(from_node, Node):
             raise ValueError("from_node isn't Class Node")
         if not isinstance(to_node, Node):
@@ -64,7 +68,7 @@ class Network:
             Validator.is_grid_point_used(grid_points)
             # test if the 1. grid_point is next to from_node
             Validator.is_first_grid_point_adjacent(from_node, grid_points)
-            # test if the last grid_point is next to from_node
+            # test if the last grid point is adjacent to to_node.
             Validator.is_last_grid_point_adjacent(to_node, grid_points)
             # test if all grid_point are adjacent to each other
             Validator.are_grid_points_adjacent(grid_points)
@@ -108,6 +112,10 @@ class Network:
         Raises:
             ValueError: If the given bridge is not part of this network.
         """
+        network_bridge = None
+        network_from_node = None
+        network_to_node = None
+
         remove_bridge = remove_bridge
         # Ensure that the bridge actually belongs to this network.
         bridges_ids = []
@@ -116,33 +124,46 @@ class Network:
 
         if remove_bridge.bridge_id not in bridges_ids:
             raise ValueError(f"Bridge ID is not in the network")
+
         # Remove the bridge from the list of active bridges.
         for bridge in self.bridges:
             if bridge.bridge_id == remove_bridge.bridge_id:
-                self.bridges.remove(bridge)
+                network_bridge = bridge
+                break
+
+        if network_bridge is None:
+            raise ValueError("Bridge not found in network")
+
+        # Find the corresponding endpoint nodes in this network
+        for node in self.nodes:
+            if node.node_id == network_bridge.from_node.node_id:
+                network_from_node = node
+                break
+
+        for node in self.nodes:
+            if node.node_id == network_bridge.to_node.node_id:
+                network_to_node = node
+                break
+
+        if network_from_node is None or network_to_node is None:
+            raise ValueError("Endpoint nodes of bridge not found in network")
+
+        self.bridges.remove(network_bridge)
 
         # Mark all grid points previously used by this bridge as free again.
-        for grid_point in remove_bridge.grid_points:
+        for grid_point in network_bridge.grid_points:
             grid_point.used = False
 
-        # Decrease connection counters on both endpoint nodes.
-        from_node = remove_bridge.from_node
+        # Decrease connection counters on both endpoint nodes in this network
+        network_from_node.current_connections -= 1
+        network_to_node.current_connections -= 1
 
-        to_node = remove_bridge.to_node
+        # If the start or end node has no remaining connections, remove it from the network
+        if network_from_node.current_connections == 0:
+            self.nodes.remove(network_from_node)
 
-        for node in self.nodes:
-            if node.node_id == from_node.node_id:
-                node.current_connections -= 1
-
-        for node in self.nodes:
-            if node.node_id == to_node.node_id:
-                node.current_connections -= 1
-
-        # If the start node or to node is no longer connected to any bridge, remove it.
-        if remove_bridge.from_node.current_connections == 0:
-            self.nodes.remove(remove_bridge.from_node)
-        if remove_bridge.to_node.current_connections == 0:
-            self.nodes.remove(remove_bridge.to_node)
+        if network_to_node.current_connections == 0:
+            self.nodes.remove(network_to_node)
 
         return True
 
@@ -210,3 +231,22 @@ class Network:
 
         explorer(start_node, [])
         return all_path
+
+    def find_bridge_by_path(self,
+                            from_node: Node,
+                            to_node: Node,
+                            grid_points: list[GridPoint]) -> Bridge | None:
+
+        target_grid_point_ids = [grid_point.grid_point_id for grid_point in grid_points]
+
+        for bridge in self.bridges:
+            bridge_grid_point_ids = [grid_point.grid_point_id for grid_point in bridge.grid_points]
+
+            if (
+                    bridge.from_node.node_id == from_node.node_id
+                    and bridge.to_node.node_id == to_node.node_id
+                    and bridge_grid_point_ids == target_grid_point_ids
+            ):
+                return bridge
+
+        return None
