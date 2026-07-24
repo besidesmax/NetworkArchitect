@@ -34,8 +34,8 @@ class GameSession:
 
     def place_bridge(self, from_node: Node, grid_points: list[GridPoint], to_node: Node,
                      bridge_type: BridgeType) -> bool:
-        """
-            Place a new bridge as a player action and update the session budget.
+        """Place a new bridge as a player action and update the session budget.
+
         Args:
             from_node: Start node of the bridge.
             grid_points: Grid points the bridge will occupy between the nodes.
@@ -64,13 +64,16 @@ class GameSession:
         return True
 
     def remove_bridge(self, bridge: Bridge) -> bool:
-        """GR-04+GR-15: Removes bridge and refunds budget if exists in network.
+        """Remove a bridge from the session network and refund its cost.
 
         Args:
-            bridge: Bridge instance to remove
+            bridge: Bridge instance to remove.
 
         Returns:
-            True if bridge removed and budget refunded, False otherwise.
+            True if the bridge was removed successfully.
+
+        Raises:
+            ValueError: If the bridge cannot be removed from the network.
         """
 
         # Delegate the actual bridge deletion to the Network model.
@@ -85,9 +88,14 @@ class GameSession:
         return True
 
     def is_it_solved(self) -> bool:
-        """GR-05+GR-09: Validates complete server-reachable network.
-       Returns:
-           True if GR-05 (all nodes reachable) AND GR-09 (server ≥2 conn)
+        """Check whether the current network satisfies the level solution rules.
+
+        A network is considered solved if all level nodes are present in the
+        session network, the server has at least two connections, and every
+        level node is reachable from the server.
+
+        Returns:
+            True if the network is solved, otherwise False.
         """
 
         # Check 1: GR-05 All level nodes present in network
@@ -132,13 +140,24 @@ class GameSession:
             pass
 
         # Check 4: GR-05 All nodes server-reachable?
-        if set(nodes_network) != set(connected_with_server):
+        if set(nodes_level) != set(connected_with_server):
             return False
 
         self.network.is_solved = True
         return True
 
     def create_copy(self):
+        """Create a deep copy of the current game session for analysis.
+
+        The copied session contains equivalent nodes, bridges, and level node
+        configuration, but uses separate model instances. This is used for
+        temporary calculations such as redundancy analysis without modifying
+        the original session.
+
+        Returns:
+            GameSession: Independent copy of the current session.
+        """
+
         old_bridge_id_counter = Bridge.id_counter
         old_node_id_counter = Node.id_counter
 
@@ -157,10 +176,17 @@ class GameSession:
             for test_grid_point in test_level.game_board:
                 if game_node.grid_point[0].grid_point_id == test_grid_point.grid_point_id:
                     right_grid_point = test_grid_point
-                    test_session.network.add_node(Node([right_grid_point], game_node.node_type))
+                    copied_node = Node([right_grid_point], game_node.node_type)
+                    copied_node.node_id = game_node.node_id
+                    test_session.network.add_node(copied_node)
 
-        # add all nodes to node_config to pass is_solved check
-        test_level.node_config.nodes = test_session.network.nodes
+        # Rebuild level node configuration for the copied session.
+        test_level.node_config.nodes = []
+        for original_node in self.level.node_config.nodes:
+            for test_node in test_session.network.nodes:
+                if test_node.grid_point[0].grid_point_id == original_node.grid_point[0].grid_point_id:
+                    test_level.node_config.add_node(test_node)
+                    break
 
         for game_bridge in self.network.bridges:
             game_from_node = game_bridge.from_node
@@ -168,6 +194,7 @@ class GameSession:
             game_to_node = game_bridge.to_node
             # bridge_type doesn't need a for-loop
             right_bridge_type = game_bridge.bridge_type
+            right_bridge_id = game_bridge.bridge_id
             right_from_node = None
             right_to_node = None
 
@@ -190,8 +217,13 @@ class GameSession:
                     right_to_node = test_to_node
                     break
 
-            # adds bridge to test_framework
             test_session.place_bridge(right_from_node, right_grid_points, right_to_node, right_bridge_type)
+            right_bridge = test_session.network.find_bridge_by_path(right_from_node, right_to_node, right_grid_points)
+
+            if right_bridge is None:
+                raise ValueError("Copied bridge not found in test session")
+
+            right_bridge.bridge_id = right_bridge_id
 
         Bridge.id_counter = old_bridge_id_counter
         Node.id_counter = old_node_id_counter
@@ -199,41 +231,60 @@ class GameSession:
         return test_session
 
     def calculate_redundancy_score(self) -> int:
-        """ Calculates redundancy score per GR-14: Max number of failing bridges until
-            at least one node disconnects from server
+        """Calculate the redundancy score for the current network.
 
-            Tests all non-empty bridge subsets: Temporarily removes and checks reachability.
-            High score = more redundant subsets = robust network.(GR-14).
+        The redundancy score is defined as the number of non-empty bridge
+        subsets that can be removed while the network still satisfies the
+        solution rules (all level nodes reachable and server connected).
+
+        The method tests all non-empty subsets of existing bridges by
+        temporarily removing them in a copied session and re-validating
+        the network.
 
         Raises:
-            ValueError: If network is not solved initially
+            ValueError: If the network is not solved before the calculation.
+
         Returns:
-            int: Number of redundant bridge subsets
+            int: Number of redundant bridge subsets.
         """
+
         # Precondition: Network must be solved
         if self.is_it_solved() is False:
             raise ValueError("Network must be solved before redundancy calculation")
 
         # Stable copy for exhaustive testing (iteration-safe)
-        test_session = self.create_copy()
         redundancy_score = 0
+
+        # Create stable copy of current bridges
+        original_bridges = list(self.network.bridges)
 
         # Generate all non-empty subsets (Power Set - empty set)
         def all_subsets(bridges):
             return chain(*[combinations(bridges, r) for r in range(1, len(bridges) + 1)])
 
-        # Create stable copy of current bridges (iteration safety)
-        all_bridges = list(test_session.network.bridges)
-
         # Test each possible bridge subset removal
-        for subset in all_subsets(all_bridges):
+        for subset in all_subsets(original_bridges):
+            test_session = self.create_copy()
+
             # Phase 1: Remove all bridges in current subset
             for bridge in subset:
-                test_session.network.delete_bridge(bridge)
+                test_bridge = None
+                for candidate in test_session.network.bridges:
+                    if candidate.bridge_id == bridge.bridge_id:
+                        test_bridge = candidate
+                        break
+
+                if test_bridge is None:
+                    raise ValueError("Bridge for redundancy test not found in copied network")
+
+                test_session.network.delete_bridge(test_bridge)
 
             # Phase 2: Test if network remains solved without this subset
-            if test_session.is_it_solved() is True:
-                redundancy_score += 1  # Subset is redundant!
+            try:
+                if test_session.is_it_solved() is True:
+                    redundancy_score += 1
+            except ValueError:
+                pass
 
             # Phase 3: Restore exact original state
             test_session = self.create_copy()
@@ -270,7 +321,6 @@ class GameSession:
                 for bridge in path:
                     path_bandwidth.append(bridge.bridge_type.bandwidth)
 
-                # print(path_bandwidth)
                 if path_bandwidth:
                     # Bottleneck = min bandwidth on path (GR-13)
                     node_bandwidth.append(min(path_bandwidth))
