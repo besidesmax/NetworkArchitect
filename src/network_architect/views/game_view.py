@@ -123,6 +123,7 @@ class GameView(QWidget):
         self.game_canvas.setMinimumSize(500, 500)
         self.game_canvas.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+        self.game_canvas.canvas_clicked_left.connect(self._on_canvas_left_clicked)
         parent_layout.addWidget(self.game_canvas, 3)
 
     def _create_right_panel(self, parent_layout):
@@ -410,6 +411,41 @@ class GameView(QWidget):
                 bridge_items.append(line)
 
             self.bridge_graphics[bridge_id] = bridge_items
+
+    def _on_canvas_left_clicked(self, scene_pos) -> None:
+        """Handle left-click actions on the game canvas.
+
+        In delete mode, this method checks whether the clicked scene item
+        represents a bridge and, if so, requests its removal through the
+        ViewModel. Only one bridge removal is triggered per click.
+
+        Args:
+            scene_pos: Click position in scene coordinates emitted by GameCanvas.
+        """
+        # Only handle bridge deletion when delete mode is active.
+        if not self.bridge_delete_btn.isChecked():
+            return
+
+        # Get the topmost graphics item at the clicked scene position.
+        item = self.scene.itemAt(scene_pos, self.game_canvas.transform())
+        if item is None:
+            return
+
+        # Ignore clicks on items that are not bridge graphics.
+        item_type = item.data(1)
+        if item_type != "bridge":
+            return
+
+        # Read the bridge ID stored on the clicked graphics item.
+        bridge_id = item.data(0)
+        if bridge_id is None:
+            return
+
+        # Delegate the removal to the ViewModel.
+        self.viewmodel.remove_bridge(int(bridge_id))
+
+        # Leave delete mode after a single deletion action.
+        self.bridge_delete_btn.setChecked(False)
 
     # === SLOTS ===
     @Slot(str)
