@@ -38,6 +38,7 @@ class DatabaseService:
         # Establish connection and create tables if they do not exist
         self.conn = sqlite3.connect(self.db_path)
         self._init_schema()
+        self._seed_levels_if_needed()
 
     def _init_schema(self) -> None:
         """Creates all required tables if they do not exist."""
@@ -72,6 +73,101 @@ class DatabaseService:
             """)
 
         self.conn.commit()
+
+    def _has_levels(self) -> bool:
+        """
+        Check whether the current database already contains any levels.
+
+        Returns:
+            bool: True if at least one level exists, False otherwise.
+        """
+        cursor = self.conn.cursor()
+
+        # Count all persisted levels in the current database.
+        cursor.execute("SELECT COUNT(*) FROM levels")
+        row = cursor.fetchone()
+
+        # Return True only if at least one level entry exists.
+        return row is not None and row[0] > 0
+
+    def _seed_database_exists(self) -> bool:
+        """
+        Check whether the configured seed database file exists.
+
+        Returns:
+            bool: True if the seed database file exists, False otherwise.
+        """
+        # Verify that the configured seed database path is available.
+        return Config.SEED_DATABASE_PATH.exists()
+
+    def _load_seed_levels(self) -> list[tuple]:
+        """
+        Load all level rows from the configured seed database.
+
+        Returns:
+            list[tuple]: All level rows from the seed database.
+        """
+        # Open a separate connection to the seed database.
+        seed_conn = sqlite3.connect(Config.SEED_DATABASE_PATH)
+        cursor = seed_conn.cursor()
+
+        # Read all persisted level records from the seed database.
+        cursor.execute("""
+            SELECT difficulty, node_config, target_redundancy_score,
+                   target_performance_score, start_budget
+            FROM levels
+            ORDER BY id
+        """)
+        rows = cursor.fetchall()
+
+        seed_conn.close()
+        return rows
+
+    def _copy_seed_levels_to_user_database(self) -> None:
+        """
+        Copy all level rows from the seed database into the current user database.
+
+        Returns:
+            None
+        """
+        seed_levels = self._load_seed_levels()
+        cursor = self.conn.cursor()
+
+        # Insert every seed level into the current user database.
+        for level_row in seed_levels:
+            cursor.execute("""
+                INSERT INTO levels (
+                    difficulty,
+                    node_config,
+                    target_redundancy_score,
+                    target_performance_score,
+                    start_budget
+                ) VALUES (?, ?, ?, ?, ?)
+            """, level_row)
+
+        self.conn.commit()
+
+    def _seed_levels_if_needed(self) -> None:
+        """
+        Seed the user database with default levels if necessary.
+
+        Returns:
+            None
+        """
+        # Skip seeding for isolated in-memory test databases.
+        if self.db_path == ":memory:":
+            return
+
+        # Stop if the user database already contains levels.
+        if self._has_levels():
+            return
+
+        # Stop if no seed database is available.
+        if not self._seed_database_exists():
+            return
+
+        # Copy default levels from the seed database into the user database.
+        self._copy_seed_levels_to_user_database()
 
     def create_player(self, name: str) -> Player:
         """
