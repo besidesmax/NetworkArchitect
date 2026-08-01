@@ -6,11 +6,8 @@ __pycache__/
 venv/
 env/
 .venv/
-dist/
 build/
 *.log
 docs/*.docx
-tests/test.py
 docs/test_network_sample.py
 src/network_architect/models/data
-tests/manuel_test.py
